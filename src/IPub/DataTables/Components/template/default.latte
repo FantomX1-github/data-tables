@@ -1,0 +1,57 @@
+<div n:snippet="dataGrid" class="dataTables" data-settings="{json_encode($control->formatSettings())}">
+
+	<form n:name="dataGridForm">
+
+		<div id="{$control->lookupPath('Nette\Application\UI\Presenter')}Wrapper">
+
+			<table n:snippet="dataGridTable" width="100%">
+			<thead>
+				<tr>
+					<th n:if="$control->hasGlobalButtons()">
+						<input type="checkbox" class="js-select-all" />
+					</th>
+					{foreach $columns as $column}
+					{$column->getHeaderPrototype()->startTag()|noescape}
+						{$column->getLabel()}
+					{$column->getHeaderPrototype()->endTag()|noescape}
+					{/foreach}
+				</tr>
+			</thead>
+			<tbody n:if="$useServerSide == FALSE && $useAjaxSource == FALSE">
+				<tr n:if="count($rows)" n:foreach="$rows as $row" id="row_{$row->$primaryKey}">
+					<td n:if="$control->hasGlobalButtons()">
+						{if $control->getActiveRowForm() == $row->$primaryKey && $control->isEditable()}
+							{$control['dataGridForm']['rowForm'][$primaryKey]->getControl()}
+						{else}
+							{$control->createRowCheckbox($row->$primaryKey)}
+						{/if}
+					</td>
+					{foreach $columns as $column}
+						{$column->getCellPrototype($row)->startTag()|noescape}
+						{if $control->isEditable() && $column->isEditable() && $control->getActiveRowForm() == $row->$primaryKey}
+							{$control['dataGridForm']['rowForm'][$column->getName()]->getControl()}
+						{else}
+							{control $column $row}
+						{/if}
+						{$column->getCellPrototype($row)->endTag()|noescape}
+					{/foreach}
+				</tr>
+				<tr n:if="!count($rows)">
+					<td class="dataTables_empty" colspan="{$colsCount}">
+						<h3>{_'No results.'}</h3>
+						<p>{_'No results were found'}</p>
+					</td>
+				</tr>
+			</tbody>
+			</table>
+
+			<div n:if="$control->hasGlobalButtons()" class="">
+				<select n:name="$control['dataGridForm']['globalAction']['name']" />
+				<input n:name="$control['dataGridForm']['globalAction']['send']" />
+			</div>
+
+		</div>
+
+	</form>
+
+</div>
