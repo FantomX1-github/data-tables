@@ -17,6 +17,7 @@ namespace IPub\DataTables\Components\Columns;
 use Nette;
 use Nette\Application\UI;
 use Nette\Utils;
+use Nette\Localization;
 
 use IPub;
 use IPub\DataTables;
@@ -72,6 +73,11 @@ abstract class Column extends UI\Control implements IColumn
 	protected $cellPrototypes = [];
 
 	/**
+	 * @var Localization\ITranslator
+	 */
+	protected $translator;
+
+	/**
 	 * @param Components\Control $parent
 	 * @param string $name
 	 * @param string $label
@@ -83,6 +89,9 @@ abstract class Column extends UI\Control implements IColumn
 
 		// Created column label
 		$this->label = $label;
+
+		// Get translator
+		$this->translator = $parent->getTranslator();
 	}
 
 	/**
@@ -102,7 +111,7 @@ abstract class Column extends UI\Control implements IColumn
 	 */
 	public function getLabel()
 	{
-		return $this->label;
+		return $this->translator ? $this->translator->translate($this->label) : $this->label;
 	}
 
 	/**

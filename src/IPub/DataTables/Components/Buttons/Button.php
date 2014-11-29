@@ -18,6 +18,7 @@ use Nette;
 use Nette\Application\UI;
 use Nette\Forms;
 use Nette\Utils;
+use Nette\Localization;
 
 use IPub;
 use IPub\DataTables;
@@ -77,6 +78,11 @@ class Button extends UI\Control implements IButton
 	protected $form;
 
 	/**
+	 * @var Localization\ITranslator
+	 */
+	protected $translator;
+
+	/**
 	 * @param Components\Control $parent
 	 * @param string $name
 	 * @param string $label
@@ -100,6 +106,9 @@ class Button extends UI\Control implements IButton
 			->setValidationScope(FALSE);
 
 		$this->ajax = $parent->hasEnabledAjax();
+
+		// Get translator
+		$this->translator = $parent->getTranslator();
 	}
 
 	/**
@@ -138,10 +147,13 @@ class Button extends UI\Control implements IButton
 	public function getTitle($data)
 	{
 		if (is_callable($this->title)){
-			return call_user_func($this->title, $data);
+			$title = call_user_func($this->title, $data);
+
+		} else {
+			$title = $this->title;
 		}
 
-		return $this->title;
+		return $this->translator ? $this->translator->translate($title) : $title;
 	}
 
 	/**

@@ -28,7 +28,6 @@ use IPub\DataTables\DataSources;
 use IPub\DataTables\Exceptions;
 use IPub\DataTables\Filters;
 use IPub\DataTables\StateSavers;
-use Tracy\Debugger;
 
 class Control extends Settings
 {
@@ -111,6 +110,14 @@ class Control extends Settings
 	public function injectStateSaver(StateSavers\IStateSaver $stateSaver)
 	{
 		$this->stateSaver = $stateSaver;
+	}
+
+	/**
+	 * @param Localization\ITranslator $translator
+	 */
+	public function injectTranslator(Localization\ITranslator $translator)
+	{
+		$this->translator = $translator;
 	}
 
 	/**
