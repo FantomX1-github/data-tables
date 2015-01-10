@@ -809,9 +809,12 @@ class Control extends Settings
 			// Records collector
 			$records = [];
 
-			foreach($rows as $id) {
-				$records[$id] = $this->model->getRow($id);
+			foreach($rows as $row) {
+				$records[$row->{$this->getPrimaryKey()}] = $this->model->getRow($row->{$this->getPrimaryKey()});
 			}
+
+			// Validate back all data grid snippets
+			$this->redrawControl(NULL, FALSE);
 
 			// Format rows data to DataTables format & put them to payload
 			$this->getPresenter()->payload->rows = $this->applyRowFormatting($records);
@@ -933,7 +936,9 @@ class Control extends Settings
 					// Parse row id from name
 					list($prefix, $id) = explode('_', $name);
 
-					$rows[] = $id;
+					if ($row = $this->model->getRow($id)) {
+						$rows[] = $row;
+					}
 				}
 			}
 
@@ -945,7 +950,16 @@ class Control extends Settings
 		} catch(Exceptions\NoRowSelectedException $ex) {
 			$this->flashMessage('No rows selected.', 'error');
 
-			$this->redirect('this');
+			// If request is done by ajax...
+			if ($this->getPresenter()->isAjax()) {
+				// Validate back all data grid snippets
+				$this->redrawControl(NULL, FALSE);
+
+				return;
+
+			} else {
+				$this->redirect('this');
+			}
 		}
 
 		/**
