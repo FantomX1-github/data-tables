@@ -25,7 +25,7 @@
 	/* jshint laxbreak: true, expr: true */
 	"use strict";
 
-	var IPub = IPub || {};
+	var IPub = window.IPub || {};
 
 	IPub.DataTables = {}
 
@@ -614,9 +614,12 @@
 		handleAlwaysEvent: function() {},
 
 		/**
-		 * Load data from the server using a HTTP GET request
+		 * Load or send data from the server using a HTTP GET or POST request
 		 *
-		 * @param {String} url
+		 * @param {string} url
+		 * @param {array|null} data
+		 * @param {array|null} selected
+		 * @param {event|null} event
 		 */
 		doRequest: function(url, data, selected, event)
 		{
