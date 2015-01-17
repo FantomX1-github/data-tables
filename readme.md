@@ -2,10 +2,9 @@
 
 DataTables implementation of datagird for [Nette Framework](http://nette.org/)
 
-## Instalation
+## Installation
 
 The best way to install ipub/data-tables is using  [Composer](http://getcomposer.org/):
-
 
 ```json
 {
@@ -16,7 +15,6 @@ The best way to install ipub/data-tables is using  [Composer](http://getcomposer
 ```
 
 or
-
 
 ```sh
 $ composer require ipub/data-tables:@dev
