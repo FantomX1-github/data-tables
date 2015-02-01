@@ -1210,7 +1210,7 @@ class Control extends Settings
 	/**
 	 * @param string $templatePath
 	 */
-	protected function setTemplate($templatePath)
+	protected function setTemplateFile($templatePath)
 	{
 		$this->templatePath = $templatePath;
 	}
