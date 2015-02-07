@@ -115,7 +115,7 @@ class Control extends Settings
 	/**
 	 * @param Localization\ITranslator $translator
 	 */
-	public function injectTranslator(Localization\ITranslator $translator)
+	public function injectTranslator(Localization\ITranslator $translator = NULL)
 	{
 		$this->translator = $translator;
 	}
