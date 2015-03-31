@@ -17,11 +17,15 @@ namespace IPub\DataTables\DataSources;
 use Nette;
 use Nette\Utils;
 
-use Doctrine\ORM\Tools\Pagination\Paginator;
+use Doctrine\ORM;
+use Doctrine\ORM\Tools;
+
+use Kdyby;
 
 use IPub\DataTables;
 use IPub\DataTables\Exceptions;
 use IPub\DataTables\Filters;
+use Tracy\Debugger;
 
 /**
  * Doctrine data source
@@ -37,20 +41,26 @@ use IPub\DataTables\Filters;
  */
 class Doctrine extends Nette\Object implements IDataSource
 {
-	/** @var \Doctrine\ORM\QueryBuilder */
+	/**
+	 * @var Kdyby\Doctrine\QueryObject
+	 */
 	protected $qb;
+
+	/**
+	 * @var Kdyby\Doctrine\EntityRepository
+	 */
+	protected $repository;
+
+	/**
+	 * @var Kdyby\Doctrine\ResultSet|array
+	 */
+	protected $result;
 
 	/** @var array Map column to the query builder */
 	protected $filterMapping;
 
 	/** @var array Map column to the query builder */
 	protected $sortMapping;
-
-	/** @var bool use OutputWalker in Doctrine Paginator */
-	protected $useOutputWalkers;
-
-	/** @var bool fetch join collection in Doctrine Paginator */
-	protected $fetchJoinCollection = TRUE;
 
 	/** @var array */
 	protected $rand;
@@ -59,13 +69,16 @@ class Doctrine extends Nette\Object implements IDataSource
 	 * If $sortMapping is not set and $filterMapping is set,
 	 * $filterMapping will be used also as $sortMapping.
 	 *
-	 * @param \Doctrine\ORM\QueryBuilder $qb
+	 * @param Kdyby\Doctrine\QueryObject $qb
+	 * @param Kdyby\Doctrine\EntityRepository $repository
 	 * @param array $filterMapping Maps columns to the DQL columns
 	 * @param array $sortMapping Maps columns to the DQL columns
 	 */
-	public function __construct(\Doctrine\ORM\QueryBuilder $qb, $filterMapping = NULL, $sortMapping = NULL)
+	public function __construct(Kdyby\Doctrine\QueryObject $qb, Kdyby\Doctrine\EntityRepository $repository, $filterMapping = NULL, $sortMapping = NULL)
 	{
 		$this->qb = $qb;
+		$this->repository = $repository;
+
 		$this->filterMapping = $filterMapping;
 		$this->sortMapping = $sortMapping;
 
@@ -75,41 +88,11 @@ class Doctrine extends Nette\Object implements IDataSource
 	}
 
 	/**
-	 * @param bool $useOutputWalkers
-	 *
-	 * @return DataTables\DataSources\Doctrine
-	 */
-	public function setUseOutputWalkers($useOutputWalkers)
-	{
-		$this->useOutputWalkers = $useOutputWalkers;
-		return $this;
-	}
-
-	/**
-	 * @param bool $fetchJoinCollection
-	 *
-	 * @return DataTables\DataSources\Doctrine
-	 */
-	public function setFetchJoinCollection($fetchJoinCollection)
-	{
-		$this->fetchJoinCollection = $fetchJoinCollection;
-		return $this;
-	}
-
-	/**
 	 * @return \Doctrine\ORM\Query
 	 */
 	public function getQuery()
 	{
 		return $this->qb->getQuery();
-	}
-
-	/**
-	 * @return \Doctrine\ORM\QueryBuilder
-	 */
-	public function getQb()
-	{
-		return $this->qb;
 	}
 
 	/**
@@ -130,42 +113,43 @@ class Doctrine extends Nette\Object implements IDataSource
 
 	/**
 	 * @param Filters\Condition $condition
-	 * @param \Doctrine\ORM\QueryBuilder $qb
+	 *
+	 * @return mixed
 	 */
-	protected function makeWhere(Filters\Condition $condition, \Doctrine\ORM\QueryBuilder $qb = NULL)
+	protected function makeWhere(Filters\Condition $condition)
 	{
-		$qb = $qb === NULL
-			? $this->qb
-			: $qb;
+		$this->result = NULL;
 
-		if ($condition->callback) {
-			return callback($condition->callback)->invokeArgs(array($condition->value, $qb));
-		}
-
-		$columns = $condition->column;
-		foreach ($columns as $key => $column) {
-			if (!Filters\Condition::isOperator($column)) {
-				$columns[$key] = (isset($this->filterMapping[$column])
-					? $this->filterMapping[$column]
-					: (Utils\Strings::contains($column, ".") ? $column : $this->qb->getRootAlias() . '.' . $column));
+		$this->qb->addFilter(function (ORM\QueryBuilder $qb) use($condition) {
+			if ($condition->callback) {
+				return callback($condition->callback)->invokeArgs(array($condition->value, $qb));
 			}
-		}
 
-		$condition->setColumn($columns);
-		list($where) = $condition->__toArray(NULL, NULL, FALSE);
+			$columns = $condition->column;
+			foreach ($columns as $key => $column) {
+				if (!Filters\Condition::isOperator($column)) {
+					$columns[$key] = (isset($this->filterMapping[$column])
+						? $this->filterMapping[$column]
+						: (Utils\Strings::contains($column, ".") ? $column : 'e.' . $column));
+				}
+			}
 
-		$rand = $this->getRand();
-		$where = preg_replace_callback('/\?/', function() use ($rand) {
-			static $i = -1;
-			$i++;
-			return ":$rand{$i}";
-		}, $where);
+			$condition->setColumn($columns);
+			list($where) = $condition->__toArray(NULL, NULL, FALSE);
 
-		$qb->andWhere($where);
+			$rand = $this->getRand();
+			$where = preg_replace_callback('/\?/', function() use ($rand) {
+				static $i = -1;
+				$i++;
+				return ":$rand{$i}";
+			}, $where);
 
-		foreach ($condition->getValueForColumn() as $i => $val) {
-			$qb->setParameter("$rand{$i}", $val);
-		}
+			$qb->andWhere($where);
+
+			foreach ($condition->getValueForColumn() as $i => $val) {
+				$qb->setParameter("$rand{$i}", $val);
+			}
+		});
 	}
 
 	/**
@@ -188,10 +172,7 @@ class Doctrine extends Nette\Object implements IDataSource
 	 */
 	public function getCount()
 	{
-		$paginator = new Paginator($this->getQuery(), $this->fetchJoinCollection);
-		$paginator->setUseOutputWalkers($this->useOutputWalkers);
-
-		return $paginator->count();
+		return $this->getResults()->count();
 	}
 
 	/**
@@ -203,28 +184,13 @@ class Doctrine extends Nette\Object implements IDataSource
 	 */
 	public function getData()
 	{
-		// Paginator is better if the query uses ManyToMany associations
-		$usePaginator = $this->qb->getMaxResults() !== NULL || $this->qb->getFirstResult() !== NULL;
 		$data = array();
 
-		if ($usePaginator) {
-			$paginator = new Paginator($this->getQuery());
-
-			// Convert paginator to the array
-			foreach ($paginator as $result) {
-				// Return only entity itself
-				$data[] = is_array($result)
-					? $result[0]
-					: $result;
-			}
-
-		} else {
-			foreach ($this->qb->getQuery()->getResult() as $result) {
-				// Return only entity itself
-				$data[] = is_array($result)
-					? $result[0]
-					: $result;
-			}
+		foreach ($this->getResults() as $result) {
+			// Return only entity itself
+			$data[] = is_array($result)
+				? $result[0]
+				: $result;
 		}
 
 		return $data;
@@ -241,11 +207,7 @@ class Doctrine extends Nette\Object implements IDataSource
 	 */
 	public function getRow($id)
 	{
-		return $this->qb
-			->where($this->qb->expr()->eq($this->qb->getRootAlias(), ':rowId'))
-			->setParameter('rowId', (int) $id)
-			->getQuery()
-				->getOneOrNullResult();
+		return $this->repository->findOneBy(['id' => (int) $id]);
 	}
 
 	/**
@@ -268,8 +230,7 @@ class Doctrine extends Nette\Object implements IDataSource
 	 */
 	public function limit($offset, $limit)
 	{
-		$this->qb->setFirstResult($offset)
-			->setMaxResults($limit);
+		$this->getResults()->applyPaging($offset, $limit);
 	}
 
 	/**
@@ -279,13 +240,17 @@ class Doctrine extends Nette\Object implements IDataSource
 	 */
 	public function sort(array $sorting)
 	{
+		$sortColumns = [];
+
 		foreach ($sorting as $key => $value) {
 			$column = isset($this->sortMapping[$key])
 				? $this->sortMapping[$key]
-				: $this->qb->getRootAlias() . '.' . $key;
+				: 'e.' . $key;
 
-			$this->qb->addOrderBy($column, $value);
+			$sortColumns[] = $column .' '. $value;
 		}
+
+		$this->getResults()->applySorting($sortColumns);
 	}
 
 	/**
@@ -330,5 +295,15 @@ class Doctrine extends Nette\Object implements IDataSource
 		}
 
 		return array_values($items);
+	}
+
+	/**
+	 * @return Kdyby\Doctrine\ResultSet
+	 */
+	private function getResults()
+	{
+		$this->result = $this->result ?:$this->qb->fetch($this->repository);
+
+		return $this->result;
 	}
 }
