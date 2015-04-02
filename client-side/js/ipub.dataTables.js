@@ -174,7 +174,7 @@
 							.row($row)
 							.remove();
 
-						// Row was updated
+					// Row was updated
 					} else {
 						// Update row data
 						that.$table
@@ -186,13 +186,10 @@
 						// Remove loading processing class from row
 						.removeClass('processing')
 						// Deselect row checkbox
-						.find('input.js-data-grid-row-checkbox')
-							.prop('checked', null);
+						.find('input.js-data-grid-action-checkbox')
+							.prop('checked', false);
 				}
 			});
-
-			// Redraw table
-			this.$table.draw();
 		}
 	}
 
@@ -388,9 +385,9 @@
 
 			// Row action button
 			$('tbody', this.$element)
-				.off('click.nette', '[type=submit][name^="rowAction"], a.js-data-grid-row-button')
-				.off('click.ipub.dt', '[type=submit][name^="rowAction"], a.js-data-grid-row-button')
-				.on('click.ipub.dt', '[type=submit][name^="rowAction"], a.js-data-grid-row-button', function(event) {
+				.off('click.nette', '[type=submit][name^="rowAction"]:not([disabled]), a.js-data-grid-row-button:not([disabled])')
+				.off('click.ipub.dt', '[type=submit][name^="rowAction"]:not([disabled]), a.js-data-grid-row-button:not([disabled])')
+				.on('click.ipub.dt', '[type=submit][name^="rowAction"]:not([disabled]), a.js-data-grid-row-button:not([disabled])', function(event) {
 					// Cache elements
 					var $button	= $(this),
 						$row	= $button.closest('tr');
@@ -605,7 +602,14 @@
 		{
 			// Are we updating rows?
 			if (payload && payload.rows) {
-				this.dataTables.updateRows(payload.rows)
+				// Redraw whole table
+				if (payload.rows.length <= 0 || payload.fullRedraw) {
+					this.dataTables.$table.draw();
+
+				// Redraw only updated rows
+				} else {
+					this.dataTables.updateRows(payload.rows)
+				}
 			}
 		},
 

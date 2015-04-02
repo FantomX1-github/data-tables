@@ -97,6 +97,11 @@ class Control extends Settings
 	protected $ajax = TRUE;
 
 	/**
+	 * @var bool
+	 */
+	protected $fullRedraw = FALSE;
+
+	/**
 	 * @param Http\IRequest $httpRequest
 	 */
 	public function injectHttpRequest(Http\IRequest $httpRequest)
@@ -253,6 +258,30 @@ class Control extends Settings
 	public function hasEnabledAjax()
 	{
 		return (bool) $this->ajax;
+	}
+
+	/**
+	 * Enable table full redraw
+	 *
+	 * @return $this
+	 */
+	public function enableFullRedraw()
+	{
+		$this->fullRedraw = TRUE;
+
+		return $this;
+	}
+
+	/**
+	 * Disable table full redraw
+	 *
+	 * @return $this
+	 */
+	public function disableFullRedraw()
+	{
+		$this->fullRedraw = FALSE;
+
+		return $this;
 	}
 
 	/**
@@ -585,7 +614,9 @@ class Control extends Settings
 	 */
 	public function getFilters()
 	{
-		return $this->getComponent(Filters\Filter::ID)->getComponents();
+		return $this->hasFilters()
+			? $this->getComponent(Filters\Filter::ID)->getComponents()
+			: NULL;
 	}
 
 	/**
@@ -771,7 +802,7 @@ class Control extends Settings
 				}
 
 				// Search value is set and not empty
-				if (isset($column['search']['value']) && !empty($column['search']['value'])) {
+				if (isset($column['search']['value']) && $column['search']['value'] !== '' && $column['search']['value'] !== NULL) {
 					$value = (string) $column['search']['value'];
 
 					// Check if provided column have active filter
@@ -818,6 +849,8 @@ class Control extends Settings
 
 			// Format rows data to DataTables format & put them to payload
 			$this->getPresenter()->payload->rows = $this->applyRowFormatting($records);
+			// Perform full redraw of data tables?
+			$this->getPresenter()->payload->fullRedraw = $this->fullRedraw;
 
 		// Classic request...
 		} else {
