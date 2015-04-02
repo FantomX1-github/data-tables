@@ -48,6 +48,11 @@ class Button extends UI\Control implements IButton
 	protected $class;
 
 	/**
+	 * @var callback|array
+	 */
+	protected $attributes = [];
+
+	/**
 	 * @var bool
 	 */
 	protected $ajax = TRUE;
@@ -203,6 +208,28 @@ class Button extends UI\Control implements IButton
 	/**
 	 * {@inheritdoc}
 	 */
+	public function addAttributes($attributes)
+	{
+		$this->attributes = $attributes;
+
+		return $this;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getAttributes($data)
+	{
+		if (is_callable($this->attributes)){
+			return call_user_func($this->attributes, $data);
+		}
+
+		return (array) $this->attributes;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
 	public function setCallback($callback)
 	{
 		$this->callback = $callback;
@@ -351,6 +378,7 @@ class Button extends UI\Control implements IButton
 		}
 
 		$button
+			->addAttributes($this->getAttributes($data))
 			->setText($this->getLabel($data))
 			->addClass('js-data-grid-row-button')
 			->addClass($this->getClass($data))
