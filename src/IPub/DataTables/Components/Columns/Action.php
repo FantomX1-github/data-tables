@@ -87,8 +87,12 @@ class Action extends Settings
 	 */
 	public function render($data)
 	{
-		foreach($this->parent->getComponent(Components\Buttons\Button::ID, FALSE)->getComponents() as $button) {
-			echo $button->render($data);
+		if ($this->parent->getComponent(Components\Buttons\Button::ID, FALSE)) {
+			foreach ($this->parent->getComponent(Components\Buttons\Button::ID, FALSE)->getComponents() as $button) {
+				if (array_key_exists($button->getName(), $this->buttons)) {
+					echo $button->render($data);
+				}
+			}
 		}
 	}
 }
