@@ -82,6 +82,11 @@ class Control extends Settings
 	protected $hasFilters;
 
 	/**
+	 * @var callback
+	 */
+	protected $rowFormCallback;
+
+	/**
 	 * @var Localization\ITranslator
 	 */
 	protected $translator;
@@ -100,6 +105,11 @@ class Control extends Settings
 	 * @var bool
 	 */
 	protected $fullRedraw = FALSE;
+
+	/**
+	 * @var null|string
+	 */
+	protected $templatePath = NULL;
 
 	/**
 	 * @param Http\IRequest $httpRequest
@@ -707,7 +717,7 @@ class Control extends Settings
 	}
 
 	/**
-	 * Sets a model that implements the interface Grido\DataSources\IDataSource or data-source object
+	 * Sets a model that implements the interface DataTables\DataSources\IDataSource or data-source object
 	 *
 	 * @param mixed $model
 	 * @param bool $forceWrapper
@@ -1241,10 +1251,33 @@ class Control extends Settings
 	}
 
 	/**
+	 * Change default control template path
+	 *
 	 * @param string $templatePath
+	 *
+	 * @return $this
+	 *
+	 * @throws Exceptions\FileNotFoundException
 	 */
-	protected function setTemplateFile($templatePath)
+	public function setTemplateFilePath($templatePath)
 	{
+		// Check if template file exists...
+		if (!is_file($templatePath)) {
+			// Remove extension
+			$template = basename($templatePath, '.latte');
+
+			// ...check if extension template is used
+			if (is_file(__DIR__ . DIRECTORY_SEPARATOR .'template'. DIRECTORY_SEPARATOR . $template .'.latte')) {
+				$templatePath = __DIR__ . DIRECTORY_SEPARATOR .'template'. DIRECTORY_SEPARATOR . $template .'.latte';
+
+			} else {
+				// ...if not throw exception
+				throw new Exceptions\FileNotFoundException('Template file "'. $templatePath .'" was not found.');
+			}
+		}
+
 		$this->templatePath = $templatePath;
+
+		return $this;
 	}
 }

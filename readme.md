@@ -1,6 +1,6 @@
 # DataTables
 
-DataTables implementation of datagird for [Nette Framework](http://nette.org/)
+DataTables datagrid implementation for [Nette Framework](http://nette.org/)
 
 ## Installation
 

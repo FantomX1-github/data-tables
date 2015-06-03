@@ -565,7 +565,7 @@
 			var hasConfirm = this.getSelect().attr('js-data-grid-confirm-' + this.getSelect().val());
 
 			if (hasConfirm) {
-				if (confirm(hasConfirm.replace(/%i/g, $(this.selector + ':checked', this.grido.$table).length))) {
+				if (confirm(hasConfirm.replace(/%i/g, $(this.selector + ':checked', this.dataTables.$element).length))) {
 					return true;
 				}
 
