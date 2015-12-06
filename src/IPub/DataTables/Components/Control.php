@@ -29,8 +29,29 @@ use IPub\DataTables\Exceptions;
 use IPub\DataTables\Filters;
 use IPub\DataTables\StateSavers;
 
+/**
+ * Data grid control
+ *
+ * @package		iPublikuj:DataTables!
+ * @subpackage	UI
+ *
+ * @author Adam Kadlec <adam.kadlec@fastybird.com>
+ *
+ * @method onBeforeConfigure(Nette\Application\UI\Control $component)
+ * @method onAfterConfigure(Nette\Application\UI\Control $component)
+ */
 class Control extends Settings
 {
+	/**
+	 * @var callable[]
+	 */
+	public $onBeforeConfigure = [];
+
+	/**
+	 * @var callable[]
+	 */
+	public $onAfterConfigure = [];
+
 	/**
 	 * @var DataSources\Model
 	 */
@@ -109,7 +130,7 @@ class Control extends Settings
 	/**
 	 * @var null|string
 	 */
-	protected $templatePath = NULL;
+	protected $templateFile = NULL;
 
 	/**
 	 * @param Http\IRequest $httpRequest
@@ -149,8 +170,14 @@ class Control extends Settings
 			$this->redrawControl();
 		}
 
+		// Call events
+		$this->onBeforeConfigure($this);
+
 		// Call data grid configuration
 		$this->configure($presenter);
+
+		// Call events
+		$this->onAfterConfigure($this);
 
 		// Collect all actions
 		if ($this->hasGlobalButtons()) {
@@ -204,8 +231,8 @@ class Control extends Settings
 		// If template was not defined before...
 		if ($this->template->getFile() === NULL) {
 			// ...try to get base component template file
-			$templatePath = !empty($this->templatePath) ? $this->templatePath : __DIR__ . DIRECTORY_SEPARATOR .'template'. DIRECTORY_SEPARATOR .'default.latte';
-			$this->template->setFile($templatePath);
+			$templateFile = !empty($this->templateFile) ? $this->templateFile : __DIR__ . DIRECTORY_SEPARATOR .'template'. DIRECTORY_SEPARATOR .'default.latte';
+			$this->template->setFile($templateFile);
 		}
 
 		// Render component template
@@ -1253,30 +1280,30 @@ class Control extends Settings
 	/**
 	 * Change default control template path
 	 *
-	 * @param string $templatePath
+	 * @param string $templateFile
 	 *
 	 * @return $this
 	 *
 	 * @throws Exceptions\FileNotFoundException
 	 */
-	public function setTemplateFilePath($templatePath)
+	public function setTemplateFile($templateFile)
 	{
 		// Check if template file exists...
-		if (!is_file($templatePath)) {
+		if (!is_file($templateFile)) {
 			// Remove extension
-			$template = basename($templatePath, '.latte');
+			$template = basename($templateFile, '.latte');
 
 			// ...check if extension template is used
 			if (is_file(__DIR__ . DIRECTORY_SEPARATOR .'template'. DIRECTORY_SEPARATOR . $template .'.latte')) {
-				$templatePath = __DIR__ . DIRECTORY_SEPARATOR .'template'. DIRECTORY_SEPARATOR . $template .'.latte';
+				$templateFile = __DIR__ . DIRECTORY_SEPARATOR .'template'. DIRECTORY_SEPARATOR . $template .'.latte';
 
 			} else {
 				// ...if not throw exception
-				throw new Exceptions\FileNotFoundException('Template file "'. $templatePath .'" was not found.');
+				throw new Exceptions\FileNotFoundException('Template file "'. $templateFile .'" was not found.');
 			}
 		}
 
-		$this->templatePath = $templatePath;
+		$this->templateFile = $templateFile;
 
 		return $this;
 	}
