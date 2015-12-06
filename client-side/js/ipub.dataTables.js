@@ -40,7 +40,7 @@
 		this.$element	= $element;
 
 		this.name		= this.$element.attr('id');
-		this.options	= $.extend($.fn.ipubDT.defaults, options, this.$element.data('settings') || {});
+		this.options	= $.extend(IPub.DataTables.defaults, options, this.$element.data('settings') || {});
 	};
 
 	IPub.DataTables.Grid.prototype =
@@ -644,6 +644,45 @@
 	};
 
 	/**
+	 * Initialize form date picker plugin
+	 *
+	 * @param {jQuery} $elements
+	 * @param {Object} options
+	 */
+	IPub.DataTables.initialize = function ($elements, options)
+	{
+		var nodes = new Array();
+
+		if ($elements.length) {
+			nodes = ($elements instanceof jQuery) ? $elements.get() : $elements;
+
+		} else {
+			nodes = Array.prototype.slice.call(document.querySelectorAll('[data-ipub-data-tables]'), 0);
+		}
+
+		nodes.forEach(function(item, i){
+			if (!item.getAttribute('ipub-data-tables')) {
+				item.setAttribute('ipub-data-tables', (new IPub.DataTables.Grid($(item), options).init()));
+			}
+		});
+	};
+
+	/**
+	 * Registering autoload to document
+	 *
+	 * @param fn
+	 */
+	IPub.DataTables.ready = function(fn)
+	{
+		if (document.readyState != 'loading'){
+			fn();
+
+		} else {
+			document.addEventListener('DOMContentLoaded', fn);
+		}
+	};
+
+	/**
 	 * IPub DataTables helpers
 	 */
 
@@ -687,13 +726,9 @@
 	var old = $.fn.ipubDataTables;
 
 	$.fn.ipubDT = function(options) {
-		return this.each(function() {
-			var that = $(this);
+		IPub.DataTables.initialize(this, options);
 
-			if (!that.data('IPubDT')) {
-				that.data('IPubDT', new IPub.DataTables.Grid(that, options).init());
-			}
-		});
+		return this;
 	};
 
 	/**
@@ -710,7 +745,7 @@
 	 * IPub DataTables defaults
 	 */
 
-	$.fn.ipubDT.defaults = {
+	IPub.DataTables.defaults = {
 		ajaxRequests : true,
 		datepicker : {
 			mask	: '99.99.9999',
@@ -718,7 +753,15 @@
 		}
 	};
 
+	/**
+	 * Complete plugin
+	 */
+
+	IPub.DataTables.ready(IPub.DataTables.initialize);
+
+	// Assign plugin data to DOM
 	window.IPub = IPub;
+
 	return IPub;
 
 })(jQuery, window, document, location, navigator);
