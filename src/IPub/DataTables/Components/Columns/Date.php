@@ -83,7 +83,7 @@ class Date extends Settings
 			$value = call_user_func($this->renderer, $row);
 
 		} else {
-			$value = $row->{$this->name};
+			$value = $this->getColumnValue($row);
 		}
 
 		echo $value instanceof \DateTime

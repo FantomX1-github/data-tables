@@ -50,7 +50,7 @@ class Text extends Settings
 			$value = call_user_func($this->renderer, $row);
 
 		} else {
-			$value = $row->{$this->getName()};
+			$value = $this->getColumnValue($row);
 		}
 
 		if ($this->truncate !== NULL) {

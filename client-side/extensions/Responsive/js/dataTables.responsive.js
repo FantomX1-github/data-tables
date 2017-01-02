@@ -205,7 +205,7 @@ Responsive.prototype = {
 		var usedWidth = widthAvailable - requiredWidth;
 
 		for ( i=0, ien=display.length ; i<ien ; i++ ) {
-			// Control column needs to always be included. This makes it sub-
+			// Component column needs to always be included. This makes it sub-
 			// optimal in terms of using the available with, but to stop layout
 			// thrashing or overflow
 			if ( columns[i].control ) {

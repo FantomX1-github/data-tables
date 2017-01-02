@@ -23,6 +23,7 @@ use Doctrine\ORM\Tools;
 use IPub\DataTables;
 use IPub\DataTables\Exceptions;
 use IPub\DataTables\Filters;
+use Ramsey\Uuid\Uuid;
 
 /**
  * Doctrine data source
@@ -30,7 +31,7 @@ use IPub\DataTables\Filters;
  * @author      Martin Jantosovic <martin.jantosovic@freya.sk>
  * @author      Petr Bugyík
  *
- * @property-read \Doctrine\ORM\QueryBuilder $qb
+ * @property-read ORM\QueryBuilder $qb
  * @property-read array $filterMapping
  * @property-read array $sortMapping
  * @property-read int $count
@@ -111,6 +112,14 @@ class Doctrine extends Nette\Object implements IDataSource
 	public function getQb()
 	{
 		return $this->qb;
+	}
+
+	/**
+	 * @param array|NULL $filterMapping Maps columns to the DQL columns
+	 */
+	public function setFilterMapping(array $filterMapping = NULL)
+	{
+		$this->filterMapping = $filterMapping;
 	}
 
 	/**
@@ -206,10 +215,10 @@ class Doctrine extends Nette\Object implements IDataSource
 	{
 		// Paginator is better if the query uses ManyToMany associations
 		$usePaginator = $this->qb->getMaxResults() !== NULL || $this->qb->getFirstResult() !== NULL;
-		$data = array();
+		$data = [];
 
 		if ($usePaginator) {
-			$paginator = new Tools\Pagination\Paginator($this->getQuery());
+			$paginator = new Tools\Pagination\Paginator($this->getQuery(), FALSE);
 
 			// Convert paginator to the array
 			foreach ($paginator as $result) {
@@ -220,7 +229,7 @@ class Doctrine extends Nette\Object implements IDataSource
 			}
 
 		} else {
-			foreach ($this->qb->getQuery()->getResult() as $result) {
+			foreach ($this->qb->getQuery()->getResult($this->qb->getQuery()->getHydrationMode()) as $result) {
 				// Return only entity itself
 				$data[] = is_array($result)
 					? $result[0]
@@ -234,7 +243,7 @@ class Doctrine extends Nette\Object implements IDataSource
 	/**
 	 * Get only one selected row by identifier
 	 *
-	 * @param int $id
+	 * @param mixed $id
 	 *
 	 * @return mixed
 	 *
@@ -242,17 +251,18 @@ class Doctrine extends Nette\Object implements IDataSource
 	 */
 	public function getRow($id)
 	{
+		$id = Uuid::fromString($id);
 		if ($this->qb->getParameters()) {
 			return $this->qb
 				->andWhere($this->qb->expr()->eq($this->qb->getRootAlias(), ':rowId'))
-				->setParameter('rowId', (int)$id)
+				->setParameter('rowId', $id->getBytes())
 				->getQuery()
 					->getOneOrNullResult();
 
 		} else {
 			return $this->qb
 				->where($this->qb->expr()->eq($this->qb->getRootAlias(), ':rowId'))
-				->setParameter('rowId', (int)$id)
+				->setParameter('rowId', $id->getBytes())
 				->getQuery()
 					->getOneOrNullResult();
 		}

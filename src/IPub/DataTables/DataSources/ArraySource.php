@@ -143,6 +143,11 @@ class ArraySource extends Nette\Object implements IDataSource
 		return $this->data;
 	}
 
+	public function getRow($id)
+	{
+		return isset($this->data[$id]) ? $this->data[$id] : NULL;
+	}
+
 	/**
 	 * @param array $conditions
 	 */

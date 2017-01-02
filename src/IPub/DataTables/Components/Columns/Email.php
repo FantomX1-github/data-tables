@@ -52,7 +52,7 @@ class Email extends Settings
 			$anchor = call_user_func($this->renderer, $row);
 
 		} else {
-			$value = $row->{$this->name};
+			$value = $this->getColumnValue($row);
 
 			$href = $this->formatHref($value);
 			$text = $this->formatText($value);

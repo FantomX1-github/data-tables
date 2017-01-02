@@ -70,11 +70,11 @@ class Text extends Filter
 		$this->grid->onRender[] = function() use ($prototype, $filter) {
 			$replacement = '-query-';
 
-			$prototype->data['js-data-grid-suggest-replacement'] = $replacement;
-			$prototype->data['js-data-grid-suggest-limit'] = $filter->suggestionLimit;
-			$prototype->data['js-data-grid-suggest-handler'] = $filter->link('suggest!', array(
+			$prototype->data('js-data-grid-suggest-replacement', $replacement);
+			$prototype->data('js-data-grid-suggest-limit', $filter->suggestionLimit);
+			$prototype->data('js-data-grid-suggest-handler', $filter->link('suggest!', [
 				'query' => $replacement
-			));
+			]));
 		};
 
 		return $this;

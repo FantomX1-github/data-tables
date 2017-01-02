@@ -1,15 +1,15 @@
 <?php
 /**
- * Control.php
+ * Component.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	Components
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Components
+ * @since          5.0
  *
- * @date		18.10.14
+ * @date           18.10.14
  */
 
 namespace IPub\DataTables\Components;
@@ -32,10 +32,10 @@ use IPub\DataTables\StateSavers;
 /**
  * Data grid control
  *
- * @package		iPublikuj:DataTables!
- * @subpackage	UI
+ * @package        iPublikuj:DataTables!
+ * @subpackage     UI
  *
- * @author Adam Kadlec <adam.kadlec@fastybird.com>
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
  *
  * @method onBeforeConfigure(Nette\Application\UI\Control $component)
  * @method onAfterConfigure(Nette\Application\UI\Control $component)
@@ -43,12 +43,12 @@ use IPub\DataTables\StateSavers;
 class Control extends Settings
 {
 	/**
-	 * @var callable[]
+	 * @var \Closure[]
 	 */
 	public $onBeforeConfigure = [];
 
 	/**
-	 * @var callable[]
+	 * @var \Closure[]
 	 */
 	public $onAfterConfigure = [];
 
@@ -165,11 +165,6 @@ class Control extends Settings
 
 		if (!$presenter instanceof UI\Presenter) return;
 
-		// Invalidate all component snippets
-		if ($presenter->isAjax()) {
-			$this->redrawControl();
-		}
-
 		// Call events
 		$this->onBeforeConfigure($this);
 
@@ -183,7 +178,7 @@ class Control extends Settings
 		if ($this->hasGlobalButtons()) {
 			$actions = [];
 
-			foreach($this->getComponent(Components\Actions\Button::ID)->getComponents() as $name => $action) {
+			foreach ($this->getComponent(Components\Actions\Button::ID)->getComponents() as $name => $action) {
 				$actions[$name] = $action->getAction();
 			}
 
@@ -194,34 +189,35 @@ class Control extends Settings
 	/**
 	 * @param ComponentModel\IComponent $presenter
 	 */
-	protected function configure($presenter) {
+	protected function configure(ComponentModel\IComponent $presenter)
+	{
 
 	}
 
 	/**
 	 * Render data grid
 	 */
-	public function render()
+	protected function beforeRender()
 	{
 		// Check if data are loaded via ajax
 		if ($this->useAjaxSource()) {
 			$rows = NULL;
 
-		// Or are loaded in render process
+			// Or are loaded in render process
 		} else {
 			$rows = $this->model->getData();
 		}
 
 		// Add data to template
-		$this->template->results		= $this->getDataCount();
-		$this->template->columns		= $this->getColumns();
-		$this->template->columnsCount	= $this->getColumnsCount();
-		$this->template->filters		= $this->getFilters();
-		$this->template->primaryKey		= $this->getPrimaryKey();
-		$this->template->rows			= $rows;
-		$this->template->settings		= $this->formatSettings();
-		$this->template->useServerSide	= $this->useServerSide();
-		$this->template->useAjaxSource	= $this->useAjaxSource();
+		$this->template->results = $this->getDataCount();
+		$this->template->columns = $this->getColumns();
+		$this->template->columnsCount = $this->getColumnsCount();
+		$this->template->filters = $this->getFilters();
+		$this->template->primaryKey = $this->getPrimaryKey();
+		$this->template->rows = $rows;
+		$this->template->settings = $this->formatSettings();
+		$this->template->useServerSide = $this->useServerSide();
+		$this->template->useAjaxSource = $this->useAjaxSource();
 
 		// Check if translator is available
 		if ($this->getTranslator() instanceof Localization\ITranslator) {
@@ -231,9 +227,14 @@ class Control extends Settings
 		// If template was not defined before...
 		if ($this->template->getFile() === NULL) {
 			// ...try to get base component template file
-			$templateFile = !empty($this->templateFile) ? $this->templateFile : __DIR__ . DIRECTORY_SEPARATOR .'template'. DIRECTORY_SEPARATOR .'default.latte';
+			$templateFile = !empty($this->templateFile) ? $this->templateFile : __DIR__ . DIRECTORY_SEPARATOR . 'template' . DIRECTORY_SEPARATOR . 'default.latte';
 			$this->template->setFile($templateFile);
 		}
+	}
+
+	public function render()
+	{
+		$this->beforeRender();
 
 		// Render component template
 		$this->template->render();
@@ -345,7 +346,8 @@ class Control extends Settings
 			Components\Columns\IColumn::TYPE_EMAIL,
 			Components\Columns\IColumn::TYPE_LINK,
 			Components\Columns\IColumn::TYPE_TEXT
-		])) {
+		])
+		) {
 			throw new Exceptions\InvalidArgumentException("Invalid column type given.");
 		}
 
@@ -354,11 +356,10 @@ class Control extends Settings
 		}
 
 		// Create column class name
-		$type = '\\IPub\\DataTables\\Components\\Columns\\'. $type;
+		$type = '\\IPub\\DataTables\\Components\\Columns\\' . $type;
 
 		$column = new $type($this, $name, $label);
-		$column
-			->setWidth($width);
+		$column->setWidth($width);
 
 		return $column;
 	}
@@ -376,8 +377,10 @@ class Control extends Settings
 	 */
 	public function addColumnText($name, $label = NULL, $width = NULL, $truncate = NULL)
 	{
-		return $this->addColumn(Components\Columns\IColumn::TYPE_TEXT, $name, $label, $width)
-			->setTruncate($truncate);
+		$column = $this->addColumn(Components\Columns\IColumn::TYPE_TEXT, $name, $label, $width);
+		$column->setTruncate($truncate);
+
+		return $column;
 	}
 
 	/**
@@ -517,6 +520,7 @@ class Control extends Settings
 
 	/**
 	 * @param string $name
+	 *
 	 * @return Nette\Forms\IControl
 	 *
 	 * @throws Exceptions\UnknownColumnException
@@ -553,7 +557,7 @@ class Control extends Settings
 	 */
 	public function isEditable()
 	{
-		foreach($this->getColumns() as $column){
+		foreach ($this->getColumns() as $column) {
 			if ($column->isEditable()) {
 				return TRUE;
 			}
@@ -603,15 +607,15 @@ class Control extends Settings
 	 */
 	public function createRowCheckbox($id)
 	{
-		$this['dataGridForm']['rows']
-			->addCheckbox('row_'. $id)
-			->getControlPrototype()
-				->addAttributes([
-					'class'		=> 'js-data-grid-action-checkbox',
-					'checked'	=> false
-				]);
+		/** @var Nette\Forms\Controls\CheckboxList $checkBoxList */
+		$checkBoxList = $this['dataGridForm']['rows'];
 
-		return $this['dataGridForm']['rows']['row_'. $id]->getControl();
+		$items = $checkBoxList->getItems();
+		$items = array_merge($items, [$id]);
+
+		$checkBoxList->setItems($items);
+
+		return $checkBoxList->getControlPart($id);
 	}
 
 	/**
@@ -731,7 +735,7 @@ class Control extends Settings
 		if (count($this->defaultSort)) {
 			$index = $this->hasGlobalButtons() || $this->hasRowButtons() ? 1 : 0;
 
-			foreach($this->getColumns() as $column) {
+			foreach ($this->getColumns() as $column) {
 				if (array_key_exists($column->getName(), $this->defaultSort) && $column->isSortable()) {
 					$defaultSort[] = [$index, $this->defaultSort[$column->getName()]];
 				}
@@ -803,14 +807,14 @@ class Control extends Settings
 		// If data are processed as server side (loaded on demand)
 		if ($this->useServerSide()) {
 			// DataTables params
-			$columns		= $this->httpRequest->getQuery('columns', []);	// Columns from DataTables
-			$displayStart	= $this->httpRequest->getQuery('start', 0);		// Limit start
-			$displayLength	= $this->httpRequest->getQuery('length', 20);	// Limit count
-			$ordering		= $this->httpRequest->getQuery('order', []);	// Data ordering
-			$search			= $this->httpRequest->getQuery('search', []);	// Global data search
+			$columns = $this->httpRequest->getQuery('columns', []);    // Columns from DataTables
+			$displayStart = $this->httpRequest->getQuery('start', 0);        // Limit start
+			$displayLength = $this->httpRequest->getQuery('length', 20);    // Limit count
+			$ordering = $this->httpRequest->getQuery('order', []);    // Data ordering
+			$search = $this->httpRequest->getQuery('search', []);    // Global data search
 
 			// Process sorting
-			foreach($ordering as $columnOrder) {
+			foreach ($ordering as $columnOrder) {
 				if (isset($columns[$columnOrder['column']]) AND ($columnName = $columns[$columnOrder['column']]['name']) AND
 					($column = $this->getColumn($columnName, FALSE))
 				) {
@@ -822,16 +826,16 @@ class Control extends Settings
 			$this->applySorting();
 
 			// Global filtering
-			if (!empty($search['value']) ) {
+			if (!empty($search['value'])) {
 				$value = addslashes($search['value']);
 
-				foreach($columns as $index => $column) {
+				foreach ($columns as $index => $column) {
 
 				}
 			}
 
 			// Columns filtering
-			foreach($columns as $column) {
+			foreach ($columns as $column) {
 				// If filter is set...
 				if (isset($this->filter[$column['name']])) {
 					//...clean it
@@ -877,8 +881,8 @@ class Control extends Settings
 			// Records collector
 			$records = [];
 
-			foreach($rows as $row) {
-				$records[$row->{$this->getPrimaryKey()}] = $this->model->getRow($row->{$this->getPrimaryKey()});
+			foreach ($rows as $row) {
+				$records[$this->getRowIdentifier($row)] = $this->model->getRow($this->getRowIdentifier($row));
 			}
 
 			// Validate back all data grid snippets
@@ -889,7 +893,7 @@ class Control extends Settings
 			// Perform full redraw of data tables?
 			$this->getPresenter()->payload->fullRedraw = $this->fullRedraw;
 
-		// Classic request...
+			// Classic request...
 		} else {
 			// ...do normal redirect
 			$this->redirect('this');
@@ -933,7 +937,7 @@ class Control extends Settings
 	public function handleLoadState()
 	{
 		// Load table settings
-		$data = $this->stateSaver->loadState($this->lookupPath('Nette\Application\UI\Presenter'));
+		$data = $this->stateSaver->loadState($this->lookupPath('Nette\Application\UI\Presenter') . $this->getName());
 
 		$this->getPresenter()->sendJson($data);
 	}
@@ -967,7 +971,7 @@ class Control extends Settings
 		$form->addContainer(Components\Buttons\Button::ID);
 		$form[Components\Buttons\Button::ID]->addSubmit('send', 'Save')
 			->getControlPrototype()
-				->addClass('js-data-grid-editable');
+			->addClass('js-data-grid-editable');
 
 		$form->addContainer('filters');
 		$form['filters']->addSubmit('send', 'Filter')
@@ -979,11 +983,18 @@ class Control extends Settings
 		$globalAction->addSubmit('send', 'Confirm')
 			->setValidationScope(FALSE)
 			->getControlPrototype()
-				->addData('select', $globalAction['name']->getControl()->name);
+			->addData('select', $globalAction['name']->getControl()->name);
 
-		$form->addContainer('rows');
+		$form->addCheckboxList('rows')
+			->getControlPrototype()
+			->addAttributes([
+				'class'   => 'js-data-grid-action-checkbox',
+				'checked' => FALSE
+			]);
 
-		$form->onSuccess[] = callback($this, 'processGridForm');
+		$form->onSuccess[] = function (UI\Form $form, $values) {
+			$this->processGridForm($form, $values);
+		};
 
 		return $form;
 	}
@@ -1001,14 +1012,9 @@ class Control extends Settings
 		try {
 			$rows = [];
 
-			foreach($this->httpRequest->getPost('rows') as $name => $value) {
-				if ((boolean) $value && Utils\Strings::startsWith($name, 'row')) {
-					// Parse row id from name
-					list($prefix, $id) = explode('_', $name);
-
-					if ($row = $this->model->getRow($id)) {
-						$rows[] = $row;
-					}
+			foreach ($this->httpRequest->getPost('rows') as $id) {
+				if ($row = $this->model->getRow($id)) {
+					$rows[] = $row;
 				}
 			}
 
@@ -1017,7 +1023,7 @@ class Control extends Settings
 				throw new Exceptions\NoRowSelectedException("No rows selected.");
 			}
 
-		} catch(Exceptions\NoRowSelectedException $ex) {
+		} catch (Exceptions\NoRowSelectedException $ex) {
 			$this->flashMessage('No rows selected.', 'error');
 
 			// If request is done by ajax...
@@ -1040,7 +1046,7 @@ class Control extends Settings
 		if ($this->hasGlobalButtons()) {
 			try {
 				// Check all action buttons...
-				foreach($this->getComponent(Components\Actions\Button::ID, FALSE)->getComponents() as $action) {
+				foreach ($this->getComponent(Components\Actions\Button::ID, FALSE)->getComponents() as $action) {
 					// ...and if form was submitted by this button...
 					if ($form[Components\Actions\Button::ID][$action->getName()]->isSubmittedBy()) {
 						// ...call button callback
@@ -1064,11 +1070,11 @@ class Control extends Settings
 					}
 				}
 
-			// Action does not exists
-			} catch(Exceptions\UnknownActionException $ex) {
+				// Action does not exists
+			} catch (Exceptions\UnknownActionException $ex) {
 
-			// Callback is not set
-			} catch(Exceptions\UnknownActionCallbackException $ex) {
+				// Callback is not set
+			} catch (Exceptions\UnknownActionCallbackException $ex) {
 
 			}
 		}
@@ -1080,7 +1086,7 @@ class Control extends Settings
 		// For row action we need only one row
 		$row = current($rows);
 
-		foreach($this->getColumns() as $column) {
+		foreach ($this->getColumns() as $column) {
 			// If column is action column
 			if ($column instanceof Columns\Action) {
 				// Get all column buttons
@@ -1208,7 +1214,7 @@ class Control extends Settings
 			$row = new Utils\ArrayHash;
 
 			// DataGrid form default values
-			$defaults = array();
+			$defaults = [];
 
 			foreach ($this->getColumns() as $column) {
 				if ($column->isEditable()) {
@@ -1220,19 +1226,19 @@ class Control extends Settings
 			$this['dataGridForm'][Components\Buttons\Button::ID]->setDefaults($defaults);
 
 			// Row identifier
-			$row->DT_RowId = 'row_'. $record->{$this->primaryKey};
+			$row->DT_RowId = 'row_' . $this->getRowIdentifier($record);
 
 			// Columns counter for non-server side processing
 			$counter = 0;
 
 			if ($this->hasGlobalButtons() || $this->hasRowButtons()) {
-				$row[$this->useServerSide() ? 'rowSelection' : $counter] = (string)$this->createRowCheckbox($record->{$this->primaryKey});
+				$row[$this->useServerSide() ? 'rowSelection' : $counter] = (string) $this->createRowCheckbox($this->getRowIdentifier($record));
 
 				$counter++;
 			}
 
 			foreach ($this->getColumns() as $index => $column) {
-				if ($this->isEditable() && $column->isEditable() && $this->activeRowForm == $record->{$this->primaryKey}) {
+				if ($this->isEditable() && $column->isEditable() && $this->activeRowForm == $this->getRowIdentifier($record)) {
 					// Add edit column data to output
 					$row[$this->useServerSide() ? $column->getName() : $counter] = $this['dataGridForm'][Components\Buttons\Button::ID][$column->getColumn()]->getControl();
 
@@ -1294,17 +1300,32 @@ class Control extends Settings
 			$template = basename($templateFile, '.latte');
 
 			// ...check if extension template is used
-			if (is_file(__DIR__ . DIRECTORY_SEPARATOR .'template'. DIRECTORY_SEPARATOR . $template .'.latte')) {
-				$templateFile = __DIR__ . DIRECTORY_SEPARATOR .'template'. DIRECTORY_SEPARATOR . $template .'.latte';
+			if (is_file(__DIR__ . DIRECTORY_SEPARATOR . 'template' . DIRECTORY_SEPARATOR . $template . '.latte')) {
+				$templateFile = __DIR__ . DIRECTORY_SEPARATOR . 'template' . DIRECTORY_SEPARATOR . $template . '.latte';
 
 			} else {
 				// ...if not throw exception
-				throw new Exceptions\FileNotFoundException('Template file "'. $templateFile .'" was not found.');
+				throw new Exceptions\FileNotFoundException('Template file "' . $templateFile . '" was not found.');
 			}
 		}
 
 		$this->templateFile = $templateFile;
 
 		return $this;
+	}
+
+	/**
+	 * @param mixed $row
+	 *
+	 * @return mixed|NULL
+	 */
+	private function getRowIdentifier($row)
+	{
+		// Row identifier
+		if (method_exists($row, 'get' . ucfirst($this->getPrimaryKey()))) {
+			return (string) call_user_func([$row, 'get' . ucfirst($this->getPrimaryKey())]);
+		}
+
+		return NULL;
 	}
 }

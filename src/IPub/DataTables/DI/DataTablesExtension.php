@@ -29,11 +29,6 @@ if (!class_exists('Nette\DI\CompilerExtension')) {
 	class_alias('Nette\Config\Helpers', 'Nette\DI\Config\Helpers');
 }
 
-if (isset(Nette\Loaders\NetteLoader::getInstance()->renamed['Nette\Configurator']) || !class_exists('Nette\Configurator')) {
-	unset(Nette\Loaders\NetteLoader::getInstance()->renamed['Nette\Configurator']);
-	class_alias('Nette\Config\Configurator', 'Nette\Configurator');
-}
-
 class DataTablesExtension extends Nette\DI\CompilerExtension implements ITranslationProvider
 {
 	public function loadConfiguration()

@@ -370,8 +370,8 @@ class Button extends UI\Control implements IButton
 				->setHref($this->getLink($data));
 
 			// Set element attributes for JS
-			$button->data['action-name']	= $this->getForm()->getComponent($this::ID, FALSE)->getComponent($this->name)->getHtmlName();
-			$button->data['action-value']	= $this->getForm()->getComponent($this::ID, FALSE)->getComponent($this->name)->caption;
+			$button->data('action-name', $this->getForm()->getComponent($this::ID, FALSE)->getComponent($this->name)->getHtmlName());
+			$button->data('action-value', $this->getForm()->getComponent($this::ID, FALSE)->getComponent($this->name)->caption);
 
 		} else {
 			$button = $this->getForm()->getComponent($this::ID, FALSE)->getComponent($this->name)->getControl();

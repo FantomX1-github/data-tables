@@ -155,7 +155,7 @@ abstract class Column extends UI\Control implements IColumn
 			$value = call_user_func($this->renderer, $row);
 
 		} else {
-			$value = $row->{$this->getName()};
+			$value = $this->getColumnValue($row);
 		}
 
 		echo $value;
@@ -462,5 +462,22 @@ abstract class Column extends UI\Control implements IColumn
 		}
 
 		return $container->addComponent($this, $name);
+	}
+
+	/**
+	 * @param mixed $row
+	 *
+	 * @return mixed|NULL
+	 */
+	protected function getColumnValue($row)
+	{
+		if (is_array($row)) {
+			return isset($row[$this->getName()]) ? $row[$this->getName()] : NULL;
+
+		} elseif (is_object($row)) {
+			return method_exists($row, 'get' . ucfirst($this->getName())) ? call_user_func([$row, 'get' . ucfirst($this->getName())]) : NULL;
+		}
+
+		return NULL;
 	}
 }

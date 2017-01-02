@@ -251,7 +251,7 @@ abstract class Settings extends UI\Control
 	protected $scrollCollapse = FALSE;
 
 	/**
-	 * Control case-sensitive filtering option
+	 * Component case-sensitive filtering option
 	 *
 	 * @see http://datatables.net/reference/option/search.caseInsensitive
 	 *

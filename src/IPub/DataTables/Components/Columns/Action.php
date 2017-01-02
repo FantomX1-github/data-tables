@@ -73,6 +73,22 @@ class Action extends Settings
 	}
 
 	/**
+	 * @param string $name
+	 *
+	 * @return Components\Buttons\Button
+	 *
+	 * @throws Exceptions\InvalidArgumentException
+	 */
+	public function getButton($name)
+	{
+		if (($buttons = $this->parent->getComponent(Components\Buttons\Button::ID, FALSE)) && $buttons->getComponent($name, FALSE) === NULL) {
+			throw new Exceptions\InvalidArgumentException("Row button $name doesn't exists.");
+		}
+
+		return $buttons->getComponent($name);
+	}
+
+	/**
 	 * {@inheritdoc}
 	 */
 	public function setRenderer($renderer)

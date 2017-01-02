@@ -2,7 +2,7 @@
  * @package		iPublikuj:Framework!
  * @copyright	Copyright (C) 2014. All rights reserved.
  * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec (http://www.fastybird.com)
+ * @author		Adam Kadlec (http://www.ipublikuj.eu)
  *
  * For the full copyright and license information, please view
  * the file LICENSE.md that was distributed with this source code.
@@ -11,7 +11,7 @@
 /**
  * Client-side script for iPublikuj:DataTables!
  *
- * @author		Adam Kadlec (http://www.fastybird.com)
+ * @author		Adam Kadlec (http://www.ipublikuj.eu)
  * @package		iPublikuj:Framework!
  * @version		1.0
  *
@@ -38,9 +38,8 @@
 	IPub.DataTables.Grid = function($element, options)
 	{
 		this.$element	= $element;
-
 		this.name		= this.$element.attr('id');
-		this.options	= $.extend(IPub.DataTables.defaults, options, this.$element.data('settings') || {});
+		this.options	= $.extend({}, IPub.DataTables.defaults, options, this.$element.data('settings') || {});
 	};
 
 	IPub.DataTables.Grid.prototype =
@@ -89,6 +88,12 @@
 
 			// Attach DataTables to table
 			this.$table = $('table', this.$element).DataTable(this.options);
+
+			this.$element.data('dataTables', this.$table);
+
+			$('table', this.$element).on('draw.dt', function (e, settings) {
+				$.nette.load();
+			});
 		},
 
 		// Attach a change handler to filter elements (select, checkbox).
@@ -163,26 +168,26 @@
 
 			$.each(rows, function(index, row) {
 				// Get updated row element
-				var $row = $('#row_' + index);
+				var rowElement = document.getElementById('row_' + index);
 
 				// Check if row exists
-				if ($row.length) {
+				if (rowElement != null) {
 					// Check if row was deleted
 					if (row == null) {
 						// Remove deleted row
 						that.$table
-							.row($row)
+							.row($(rowElement))
 							.remove();
 
 					// Row was updated
 					} else {
 						// Update row data
 						that.$table
-							.row($row)
+							.row($(rowElement))
 							.data(row);
 					}
 
-					$row
+					$(rowElement)
 						// Remove loading processing class from row
 						.removeClass('processing')
 						// Deselect row checkbox
@@ -190,6 +195,8 @@
 							.prop('checked', false);
 				}
 			});
+
+			$.nette.load();
 		}
 	}
 

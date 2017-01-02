@@ -74,6 +74,6 @@ class StateSaver extends Nette\Object implements IStateSaver
 	 */
 	protected function generateKey($name)
 	{
-		return md5($name .'-'. $this->user->id);
+		return md5($name .'-'. $this->user->getId());
 	}
 }
