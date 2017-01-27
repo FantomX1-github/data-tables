@@ -43,9 +43,9 @@ class Date extends Settings
 	 * @param string $label
 	 * @param string $dateFormat
 	 */
-	public function __construct(Components\Control $grid, $name, $label, $dateFormat = NULL)
+	public function __construct(Components\Control $grid, $name, $label, $insertBefore = NULL, $dateFormat = NULL)
 	{
-		parent::__construct($grid, $name, $label);
+		parent::__construct($grid, $name, $label, $insertBefore);
 
 		if ($dateFormat !== NULL) {
 			$this->dateFormat = $dateFormat;

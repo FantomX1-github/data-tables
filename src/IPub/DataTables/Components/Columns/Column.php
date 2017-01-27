@@ -81,11 +81,14 @@ abstract class Column extends UI\Control implements IColumn
 	 * @param Components\Control $parent
 	 * @param string $name
 	 * @param string $label
+	 * @param string|NULL $insertBefore
 	 */
-	public function __construct(Components\Control $parent, $name, $label)
+	public function __construct(Components\Control $parent, $name, $label, $insertBefore = NULL)
 	{
+		parent::__construct();
+
 		// Register component to parent grid
-		$this->addComponentToGrid($parent, $name);
+		$this->addComponentToGrid($parent, $name, $insertBefore);
 
 		// Created column label
 		$this->label = $label;
@@ -450,18 +453,18 @@ abstract class Column extends UI\Control implements IColumn
 	 *
 	 * @return Nette\ComponentModel\Container
 	 */
-	protected function addComponentToGrid(Components\Control $grid, $name)
+	protected function addComponentToGrid(Components\Control $grid, $name, $insertBefore = NULL)
 	{
 		$this->parent = $grid;
 
 		// Check container exist
 		$container = $this->parent->getComponent($this::ID, FALSE);
 		if (!$container) {
-			$this->parent->addComponent(new Nette\ComponentModel\Container, $this::ID);
+			$this->parent->addComponent(new Nette\ComponentModel\Container, $this::ID, $insertBefore);
 			$container = $this->parent->getComponent($this::ID);
 		}
 
-		return $container->addComponent($this, $name);
+		return $container->addComponent($this, $name, $insertBefore);
 	}
 
 	/**

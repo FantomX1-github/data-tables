@@ -52,9 +52,9 @@ class Number extends Settings
 	 * @param string $decPoint separator for the decimal point
 	 * @param string $thousandsSep thousands separator
 	 */
-	public function __construct(Components\Control $grid, $name, $label, $decimals = NULL, $decPoint = NULL, $thousandsSep = NULL)
+	public function __construct(Components\Control $grid, $name, $label, $insertBefore = NULL, $decimals = NULL, $decPoint = NULL, $thousandsSep = NULL)
 	{
-		parent::__construct($grid, $name, $label);
+		parent::__construct($grid, $name, $label, $insertBefore);
 
 		$this->setNumberFormat($decimals, $decPoint, $thousandsSep);
 	}

@@ -329,13 +329,14 @@ class Control extends Settings
 	 * @param string $name
 	 * @param string $label
 	 * @param null|string $width
+	 * @param null|string $insertBefore
 	 *
 	 * @return Components\Columns\IColumn
 	 *
 	 * @throws Exceptions\InvalidArgumentException
 	 * @throws Exceptions\DuplicateColumnException
 	 */
-	public function addColumn($type, $name, $label, $width = NULL)
+	public function addColumn($type, $name, $label, $width = NULL, $insertBefore = NULL)
 	{
 		if (!in_array($type, [
 			Components\Columns\IColumn::TYPE_ACTION,
@@ -358,7 +359,7 @@ class Control extends Settings
 		// Create column class name
 		$type = '\\IPub\\DataTables\\Components\\Columns\\' . $type;
 
-		$column = new $type($this, $name, $label);
+		$column = new $type($this, $name, $label, $insertBefore);
 		$column->setWidth($width);
 
 		return $column;
@@ -447,15 +448,16 @@ class Control extends Settings
 	 * @param string $name
 	 * @param null|string $label
 	 * @param null|string $width
+	 * @param null|string $insertBefore
 	 *
 	 * @return Components\Columns\IColumn
 	 *
 	 * @throws Exceptions\InvalidArgumentException
 	 * @throws Exceptions\DuplicateColumnException
 	 */
-	public function addColumnAction($name, $label = NULL, $width = NULL)
+	public function addColumnAction($name, $label = NULL, $width = NULL, $insertBefore = NULL)
 	{
-		return $this->addColumn(Components\Columns\IColumn::TYPE_ACTION, $name, $label, $width);
+		return $this->addColumn(Components\Columns\IColumn::TYPE_ACTION, $name, $label, $width, $insertBefore);
 	}
 
 	/**
@@ -597,7 +599,7 @@ class Control extends Settings
 	 */
 	public function hasGlobalButtons()
 	{
-		return (($buttons = $this->getComponent(Components\Actions\Button::ID, FALSE)) AND count($buttons->getComponents()) > 1) ? TRUE : FALSE;
+		return (($buttons = $this->getComponent(Components\Actions\Button::ID, FALSE)) AND count($buttons->getComponents()) >= 1) ? TRUE : FALSE;
 	}
 
 	/**
