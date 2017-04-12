@@ -29,4 +29,4 @@ extensions:
 Learn how to create JavaScript controlled datagrid in [documentation](https://github.com/iPublikuj/data-tables/blob/master/docs/en/index.md).
 
 ***
-Homepage [http://www.ipublikuj.eu](http://www.ipublikuj.eu) and repository [http://github.com/iPublikuj/data-tables(http://github.com/iPublikuj/data-tables).
+Homepage [http://www.ipublikuj.eu](http://www.ipublikuj.eu) and repository [http://github.com/iPublikuj/data-tables](http://github.com/iPublikuj/data-tables).
