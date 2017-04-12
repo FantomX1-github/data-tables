@@ -2,26 +2,32 @@
 /**
  * IButton.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	Components
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Components
+ * @since          1.0.0
  *
- * @date		26.11.14
+ * @date           26.11.14
  */
+
+declare(strict_types=1);
 
 namespace IPub\DataTables\Components\Buttons;
 
-use Nette;
-use Nette\Application\UI;
 use Nette\Utils;
 
-use IPub;
 use IPub\DataTables;
-use IPub\DataTables\Exceptions;
 
+/**
+ * Action column button control interface
+ *
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Components
+ *
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
+ */
 interface IButton
 {
 	/**
@@ -32,166 +38,111 @@ interface IButton
 	/**
 	 * Define button element type
 	 */
-	const TYPE_BUTTON	= 'button';
-	const TYPE_LINK		= 'link';
+	const TYPE_BUTTON = 'button';
+	const TYPE_LINK = 'link';
 
 	/**
 	 * Set button type to button element
-	 * @return $this
+	 *
+	 * @return void
 	 */
-	public function showAsButton();
+	function showAsButton();
 
 	/**
 	 * Set button type to link element
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function showAsLink();
+	function showAsLink();
 
 	/**
 	 * Set button title
 	 *
-	 * @param callback|string $title
+	 * @param callable|string $title
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setTitle($title);
-
-	/**
-	 * Get button title
-	 *
-	 * @param mixed $data
-	 *
-	 * @return string
-	 */
-	public function getTitle($data);
-
-	/**
-	 * Set button element label
-	 *
-	 * @param callback|string $label
-	 *
-	 * @return $this
-	 */
-	public function setLabel($label);
-
-	/**
-	 * Get button element label
-	 *
-	 * @param mixed $data
-	 *
-	 * @return string
-	 */
-	public function getLabel($data);
+	function setTitle($title);
 
 	/**
 	 * Set button element class
 	 *
-	 * @param callback|string $class
+	 * @param callable|string $class
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setClass($class);
+	function setClass($class);
 
 	/**
-	 * Get button element class
+	 * Button element attributes
 	 *
-	 * @param mixed $data
+	 * @param callable|array $attributes
 	 *
-	 * @return string
+	 * @return void
 	 */
-	public function getClass($data);
+	function setAttributes($attributes);
 
 	/**
-	 * Set button callback
+	 * Set button callable
 	 *
-	 * @param callback $callback
+	 * @param callable $callable
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setCallback($callback);
+	function setCallback(callable $callable);
 
 	/**
-	 * Get button callback
+	 * Get button callable
 	 *
-	 * @return callable
-	 *
-	 * @throws Exceptions\UnknownButtonCallbackException
+	 * @return callable|NULL
 	 */
-	public function getCallback();
+	function getCallback();
 
 	/**
 	 * Set button link
 	 *
-	 * @param callback|string $link
+	 * @param callable|string $link
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setLink($link);
-
-	/**
-	 * Get button link only for link type
-	 *
-	 * @param mixed $data
-	 *
-	 * @return string
-	 */
-	public function getLink($data);
-
-	/**
-	 * Set button renderer
-	 *
-	 * @param callback $renderer
-	 *
-	 * @return $this
-	 *
-	 * @throws Exceptions\ButtonRendererNotCallableException
-	 */
-	public function setRenderer($renderer);
-
-	/**
-	 * Set ajax for button
-	 *
-	 * @param bool $ajax
-	 *
-	 * @return $this
-	 */
-	public function setAjax($ajax = TRUE);
+	function setLink($link);
 
 	/**
 	 * Enable ajax for button
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function enableAjax();
+	function enableAjax();
 
 	/**
 	 * Disable ajax for button
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function disableAjax();
+	function disableAjax();
 
 	/**
 	 * Check if ajax is for this button enabled
 	 *
 	 * @return bool
 	 */
-	public function hasEnabledAjax();
+	function hasEnabledAjax() : bool;
 
 	/**
-	 * Get row action form
+	 * Set button renderer
 	 *
-	 * @return UI\Form
+	 * @param callable $renderer
+	 *
+	 * @return void
 	 */
-	public function getForm();
+	function setRenderer(callable $renderer);
 
 	/**
 	 * Render row button
 	 *
-	 * @param mixed|null $data
+	 * @param mixed $data
 	 *
 	 * @return mixed|Utils\Html
 	 */
-	public function render($data = NULL);
+	function render($data);
 }

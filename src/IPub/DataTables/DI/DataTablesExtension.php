@@ -2,70 +2,68 @@
 /**
  * DataTablesExtension.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	DI
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     DI
+ * @since          1.0.0
  *
- * @date		27.10.14
+ * @date           27.10.14
  */
+
+declare(strict_types = 1);
 
 namespace IPub\DataTables\DI;
 
 use Nette;
-use Nette\DI\Compiler;
-use Nette\DI\Configurator;
-use Nette\PhpGenerator as Code;
+use Nette\DI;
 
-use Kdyby\Translation\DI\ITranslationProvider;
+use IPub\DataTables\Components;
+use IPub\DataTables\StateSavers;
 
-use IPub;
-
-if (!class_exists('Nette\DI\CompilerExtension')) {
-	class_alias('Nette\Config\CompilerExtension', 'Nette\DI\CompilerExtension');
-	class_alias('Nette\Config\Compiler', 'Nette\DI\Compiler');
-	class_alias('Nette\Config\Helpers', 'Nette\DI\Config\Helpers');
-}
-
-class DataTablesExtension extends Nette\DI\CompilerExtension implements ITranslationProvider
+/**
+ * DataTables extension container
+ *
+ * @package        iPublikuj:DataTables!
+ * @subpackage     DI
+ *
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
+ *
+ * @method DI\ContainerBuilder getContainerBuilder()
+ * @method string prefix($id)
+ */
+final class DataTablesExtension extends DI\CompilerExtension
 {
+	/**
+	 * @return void
+	 */
 	public function loadConfiguration()
 	{
+		/** @var DI\ContainerBuilder $builder */
 		$builder = $this->getContainerBuilder();
 
 		// State saver
 		$builder->addDefinition($this->prefix('stateSaver'))
-			->setClass('IPub\DataTables\StateSavers\StateSaver');
+			->setClass(StateSavers\StateSaver::class);
 
 		// Define components
 		$builder->addDefinition($this->prefix('dataTables'))
-			->setClass('IPub\DataTables\Components\Control')
-			->setImplement('IPub\DataTables\Components\IControl')
+			->setClass(Components\Control::class)
+			->setImplement(Components\IControl::class)
 			->addTag('cms.components');
 	}
 
 	/**
-	 * @param \Nette\Configurator $config
+	 * @param Nette\Configurator $config
 	 * @param string $extensionName
+	 *
+	 * @return void
 	 */
-	public static function register(Nette\Configurator $config, $extensionName = 'dataTables')
+	public static function register(Nette\Configurator $config, string $extensionName = 'dataTables')
 	{
-		$config->onCompile[] = function (Configurator $config, Compiler $compiler) use ($extensionName) {
+		$config->onCompile[] = function (Nette\Configurator $config, Nette\DI\Compiler $compiler) use ($extensionName) {
 			$compiler->addExtension($extensionName, new DataTablesExtension());
 		};
-	}
-
-	/**
-	 * Return array of directories, that contain resources for translator.
-	 *
-	 * @return string[]
-	 */
-	function getTranslationResources()
-	{
-		return array(
-			__DIR__ . '/../Translations'
-		);
 	}
 }

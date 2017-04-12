@@ -2,95 +2,94 @@
 /**
  * Filter.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	Filters
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ * @since          1.0.0
  *
- * @date		11.11.14
+ * @date           11.11.14
  */
+
+declare(strict_types=1);
 
 namespace IPub\DataTables\Filters;
 
 use Nette;
 use Nette\Application\UI;
+use Nette\ComponentModel;
+use Nette\Forms;
 use Nette\Utils;
 
-use IPub;
-use IPub\DataTables;
 use IPub\DataTables\Components;
 use IPub\DataTables\Exceptions;
 
+/**
+ * DataTables column filter control
+ *
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ *
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
+ *
+ * @property-read UI\Control $parent
+ */
 abstract class Filter extends UI\Control implements IFilter
 {
 	/**
 	 * @var string
 	 */
-	protected $label;
+	private $label;
 
 	/**
 	 * @var string
 	 */
-	protected $type;
-
-	/**
-	 * @var mixed
-	 */
-	protected $optional;
+	private $type;
 
 	/**
 	 * @var array
 	 */
-	protected $column = array();
+	private $column = [];
 
 	/**
 	 * @var string
 	 */
-	protected $condition = '= ?';
+	private $condition = '= ?';
 
 	/**
-	 * @var callable
+	 * @var callable|NULL
 	 */
-	protected $where;
+	private $where = NULL;
 
 	/**
-	 * @var string
+	 * @var string|NULL
 	 */
-	protected $formatValue;
+	private $formatValue = NULL;
 
 	/**
-	 * @var Utils\Html
+	 * @var Utils\Html|NULL
 	 */
-	protected $wrapperPrototype;
+	private $wrapperPrototype = NULL;
 
 	/**
-	 * @var Nette\Forms\Controls\BaseControl
+	 * @var Forms\Controls\BaseControl
 	 */
-	protected $control;
-
-	/**
-	 * @var Components\Control
-	 */
-	protected $parent;
-
-	/**
-	 * @var UI\Form
-	 */
-	protected $form;
+	private $control;
 
 	/**
 	 * @param Components\Control $parent
 	 * @param string $name
 	 * @param string $label
 	 */
-	public function __construct(Components\Control $parent, $name, $label)
+	public function __construct(Components\Control $parent, string $name, string $label)
 	{
-		$this->addComponentToGrid($parent, $name);
+		parent::__construct();
 
-		$this->label	= $label;
-		$this->type		= get_class($this);
+		$this->addFilterToContainer($parent, $name);
+
+		$this->label = $label;
+		$this->type = get_class($this);
 
 		$form = $this->getForm();
 
@@ -103,24 +102,23 @@ abstract class Filter extends UI\Control implements IFilter
 		$filters->addComponent($this->getFormControl(), $name);
 	}
 
-	/**********************************************************************************************/
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getLabel() : string
+	{
+		return $this->label;
+	}
 
 	/**
-	 * Map to database column
-	 *
-	 * @param string $column
-	 * @param string $operator
-	 *
-	 * @return $this
-	 *
-	 * @throws \InvalidArgumentException
+	 * {@inheritdoc}
 	 */
-	public function setColumn($column, $operator = Condition::OPERATOR_OR)
+	public function setColumn(string $column, string $operator = Condition::OPERATOR_OR)
 	{
 		$columnAlreadySet = count($this->column) > 0;
 
 		if (!Condition::isOperator($operator) && $columnAlreadySet) {
-			throw new \InvalidArgumentException('Operator must be Condition::OPERATOR_AND or Condition::OPERATOR_OR.');
+			throw new Exceptions\InvalidArgumentException('Operator must be Condition::OPERATOR_AND or Condition::OPERATOR_OR.');
 		}
 
 		if ($columnAlreadySet) {
@@ -130,78 +128,50 @@ abstract class Filter extends UI\Control implements IFilter
 		} else {
 			$this->column[] = $column;
 		}
-
-		return $this;
 	}
 
 	/**
-	 * Sets custom condition
-	 *
-	 * @param $condition
-	 *
-	 * @return $this
+	 * {@inheritdoc
 	 */
-	public function setCondition($condition)
+	public function setCondition(string $condition)
 	{
 		$this->condition = $condition;
-
-		return $this;
 	}
 
 	/**
-	 * Sets custom "sql" where
-	 *
-	 * @param callable $callback function($value, $source) {}
-	 *
-	 * @return $this
+	 * {@inheritdoc
 	 */
-	public function setWhere($callback)
+	public function setWhere(callable $callback)
 	{
 		$this->where = $callback;
-
-		return $this;
 	}
 
 	/**
-	 * Sets custom format value
-	 *
-	 * @param string $format for example: "%%value%"
-	 *
-	 * @return $this
+	 * {@inheritdoc
 	 */
-	public function setFormatValue($format)
+	public function setFormatValue(string $format)
 	{
 		$this->formatValue = $format;
-
-		return $this;
 	}
 
 	/**
-	 * Sets default value
-	 *
-	 * @param string $value
-	 *
-	 * @return $this
+	 * {@inheritdoc
 	 */
-	public function setDefaultValue($value)
+	public function setDefaultValue(string $value)
 	{
-		$this->parent->setDefaultFilter([$this->getName() => $value]);
-
-		return $this;
+		$this->getGrid()->setDefaultFilter([$this->getName() => $value]);
 	}
 
-	/**********************************************************************************************/
-
 	/**
-	 * @return array
+	 * {@inheritdoc
 	 */
-	public function getColumn()
+	public function getColumn() : array
 	{
 		if (!$this->column) {
 			$column = $this->getName();
 
-			if ($columnComponent = $this->parent->getColumn($column, FALSE)) {
-				$column = $columnComponent->getColumn(); //use db column from column compoment
+			if ($columnComponent = $this->getGrid()->getColumn($column, FALSE)) {
+				$column = $columnComponent->getColumn(); // Use db column from column component
 			}
 
 			$this->setColumn($column);
@@ -211,9 +181,9 @@ abstract class Filter extends UI\Control implements IFilter
 	}
 
 	/**
-	 * @return Nette\Forms\Controls\BaseControl
+	 * {@inheritdoc
 	 */
-	public function getControl()
+	public function getControl() : Forms\Controls\BaseControl
 	{
 		if ($this->control === NULL) {
 			$this->control = $this->getForm()->getComponent(self::ID)->getComponent($this->getName());
@@ -223,24 +193,24 @@ abstract class Filter extends UI\Control implements IFilter
 	}
 
 	/**
-	 * Returns wrapper prototype (<th> html tag)
-	 *
-	 * @return Utils\Html
+	 * {@inheritdoc
 	 */
-	public function getWrapperPrototype()
+	public function getWrapperPrototype() : Utils\Html
 	{
-		if (!$this->wrapperPrototype) {
-			$this->wrapperPrototype = Utils\Html::el('th')
-				->setClass(array('js-data-grid-filter-' . $this->getName()));
+		if ($this->wrapperPrototype === NULL) {
+			$this->wrapperPrototype = Utils\Html::el('th');
+			$this->wrapperPrototype->addAttributes([
+				'class' => 'js-data-grid-filter-' . $this->getName(),
+			]);
 		}
 
 		return $this->wrapperPrototype;
 	}
 
 	/**
-	 * @return string
+	 * {@inheritdoc
 	 */
-	public function getCondition()
+	public function getCondition() : string
 	{
 		return $this->condition;
 	}
@@ -270,7 +240,7 @@ abstract class Filter extends UI\Control implements IFilter
 			$condition = $condition;
 
 		} elseif (is_callable($condition)) {
-			$condition = callback($condition)->invokeArgs(array($value));
+			$condition = callback($condition)->invokeArgs([$value]);
 
 		} elseif (is_array($condition)) {
 			$condition = isset($condition[$value])
@@ -283,13 +253,24 @@ abstract class Filter extends UI\Control implements IFilter
 
 		} elseif ($condition !== NULL && !$condition instanceof Condition) {
 			$type = gettype($condition);
-			throw new Exceptions\InvalidArgumentException("Condition must be array or Condition object. $type given.");
+			throw new Exceptions\InvalidArgumentException(sprintf('Condition must be array or Condition object. %s given.', $type));
 		}
 
 		return $condition;
 	}
 
-	/**********************************************************************************************/
+	/**
+	 * {@inheritdoc
+	 */
+	public function changeValue(string $value)
+	{
+		return $value;
+	}
+
+	/**
+	 * @return Forms\Controls\BaseControl
+	 */
+	abstract protected function getFormControl() : Forms\Controls\BaseControl;
 
 	/**
 	 * Format value for database
@@ -298,56 +279,53 @@ abstract class Filter extends UI\Control implements IFilter
 	 *
 	 * @return string
 	 */
-	protected function formatValue($value)
+	private function formatValue(string $value) : string
 	{
 		if ($this->formatValue !== NULL) {
 			return str_replace(static::VALUE_IDENTIFIER, $value, $this->formatValue);
+
 		} else {
 			return $value;
 		}
 	}
 
 	/**
-	 * Value representation in URI
-	 *
-	 * @param string $value
-	 *
-	 * @return string
-	 */
-	public function changeValue($value)
-	{
-		return $value;
-	}
-
-	/**
-	 * @param Components\Control $parent
+	 * @param Components\Control $grid
 	 * @param string $name
 	 *
-	 * @return Nette\ComponentModel\Container
+	 * @return void
 	 */
-	protected function addComponentToGrid(Components\Control $parent, $name)
+	private function addFilterToContainer(Components\Control $grid, string $name)
 	{
-		$this->parent = $parent;
+		/** @var ComponentModel\Container $container */
+		$container = $grid->getComponent(self::ID, FALSE);
 
 		// Check container exist
-		$container = $this->parent->getComponent($this::ID, FALSE);
-		if (!$container) {
-			$this->parent->addComponent(new Nette\ComponentModel\Container, $this::ID);
-			$container = $this->parent->getComponent($this::ID);
+		if ($container === NULL) {
+			$grid->addComponent(new Nette\ComponentModel\Container, self::ID);
+
+			$container = $grid->getComponent(self::ID);
 		}
 
-		return $container->addComponent($this, $name);
+		$container->addComponent($this, $name);
 	}
 
 	/**
-	 * @return Nette\Application\UI\Form
+	 * @return UI\Form
 	 */
-	public function getForm()
+	private function getForm() : UI\Form
 	{
-		if ($this->form === NULL) {
-			$this->form = $this->parent->getComponent('dataGridForm');
-		}
+		return $this->getGrid()->getComponent('dataGridForm');
+	}
 
-		return $this->form;
+	/**
+	 * @return Components\Control
+	 */
+	private function getGrid() : Components\Control
+	{
+		/** @var Components\Control $gridControl */
+		$gridControl = $this->parent->lookup(Components\Control::class);
+
+		return $gridControl;
 	}
 }

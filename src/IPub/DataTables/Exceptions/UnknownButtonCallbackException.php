@@ -1,6 +1,6 @@
 <?php
 /**
- * InvalidArgumentException.php
+ * UnknownButtonCallbackException.php
  *
  * @copyright      More in license.md
  * @license        http://www.ipublikuj.eu
@@ -9,15 +9,13 @@
  * @subpackage     Exceptions
  * @since          1.0.0
  *
- * @date           19.10.14
+ * @date           12.04.17
  */
 
 declare(strict_types=1);
 
 namespace IPub\DataTables\Exceptions;
 
-use Nette;
-
-class InvalidArgumentException extends Nette\InvalidArgumentException implements IException
+class UnknownButtonCallbackException extends InvalidStateException implements IException
 {
 }

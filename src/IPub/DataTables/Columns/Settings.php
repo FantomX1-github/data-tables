@@ -2,29 +2,34 @@
 /**
  * Settings.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	Columns
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Columns
+ * @since          1.0.0
  *
- * @date		06.11.14
+ * @date           06.11.14
  */
 
-namespace IPub\DataTables\Components\Columns;
+declare(strict_types=1);
 
-use Nette;
+namespace IPub\DataTables\Columns;
+
 use Nette\Application\UI;
-use Nette\Utils;
 
-use IPub;
 use IPub\DataTables;
-use IPub\DataTables\Components;
 use IPub\DataTables\Exceptions;
-use IPub\DataTables\Filters;
 
-abstract class Settings extends Column
+/**
+ * DataTables column settings control
+ *
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Components
+ *
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
+ */
+abstract class Settings extends UI\Control implements ISettings
 {
 	/**
 	 * Change the cell type created for the column - either TD cells or TH cells
@@ -33,25 +38,25 @@ abstract class Settings extends Column
 	 *
 	 * @var string
 	 */
-	protected $cellType = 'td';
+	private $cellType = 'td';
 
 	/**
 	 * Class to assign to each cell in the column
 	 *
 	 * @see http://datatables.net/reference/option/columns.className
 	 *
-	 * @var string
+	 * @var string|NULL
 	 */
-	protected $className = NULL;
+	private $className = NULL;
 
 	/**
 	 * Set default, static, content for a column
 	 *
 	 * @see http://datatables.net/reference/option/columns.defaultContent
 	 *
-	 * @var string
+	 * @var string|NULL
 	 */
-	protected $defaultContent = NULL;
+	private $defaultContent = NULL;
 
 	/**
 	 * Enable or disable ordering on this column
@@ -60,7 +65,7 @@ abstract class Settings extends Column
 	 *
 	 * @var bool
 	 */
-	protected $sortable = TRUE;
+	private $sortable = TRUE;
 
 	/**
 	 * Define multiple column ordering as the default order for a column
@@ -69,16 +74,16 @@ abstract class Settings extends Column
 	 *
 	 * @var array
 	 */
-	protected $orderData;
+	private $orderData = [];
 
 	/**
 	 * Live DOM sorting type assignment
 	 *
 	 * @see http://datatables.net/reference/option/columns.orderDataType
 	 *
-	 * @var string
+	 * @var string|NULL
 	 */
-	protected $orderDataType;
+	private $orderDataType = NULL;
 
 	/**
 	 * Order direction application sequence
@@ -87,7 +92,7 @@ abstract class Settings extends Column
 	 *
 	 * @var array
 	 */
-	protected $orderSequence = ['asc', 'desc'];
+	private $orderSequence = ['asc', 'desc'];
 
 	/**
 	 * Enable or disable filtering on the data in this column
@@ -96,16 +101,16 @@ abstract class Settings extends Column
 	 *
 	 * @var bool
 	 */
-	protected $searchable = TRUE;
+	private $searchable = TRUE;
 
 	/**
 	 * Set the column type - used for filtering and sorting string processing
 	 *
 	 * @see http://datatables.net/reference/option/columns.type
 	 *
-	 * @var string
+	 * @var string|NULL
 	 */
-	protected $type;
+	private $type = NULL;
 
 	/**
 	 * Enable or disable the display of this column
@@ -114,157 +119,119 @@ abstract class Settings extends Column
 	 *
 	 * @var bool
 	 */
-	protected $visible = TRUE;
+	private $visible = TRUE;
 
 	/**
 	 * Column width assignment
 	 *
 	 * @see http://datatables.net/reference/option/columns.width
 	 *
-	 * @var string
+	 * @var string|NULL
 	 */
-	protected $width;
+	private $width = NULL;
 
 	/**
-	 * @param string $name
-	 *
-	 * @return $this
+	 * {@inheritdoc}
 	 */
-	public function setName($name)
+	public function setCellType(string $cellType = 'td')
 	{
-		$this->name = (string) $name;
-
-		return $this;
+		$this->cellType = $cellType;
 	}
 
 	/**
-	 * @param string $cellType
-	 *
-	 * @return $this
+	 * {@inheritdoc}
 	 */
-	public function setCellType($cellType = 'td')
+	public function getCellType() : string
 	{
-		$this->cellType = (string) $cellType;
-
-		return $this;
+		return $this->cellType;
 	}
 
 	/**
-	 * @return string
+	 * {@inheritdoc}
 	 */
-	public function getCellType()
+	public function setClassName(string $className)
 	{
-		return (string) $this->cellType;
+		$this->className = $className;
 	}
 
 	/**
-	 * @param string $className
-	 *
-	 * @return $this
-	 */
-	public function setClassName($className)
-	{
-		$this->className = (string) $className;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
+	 * {@inheritdoc}
 	 */
 	public function getClassName()
 	{
-		return (string) $this->className;
+		return $this->className;
 	}
 
 	/**
-	 * @param string $defaultContent
-	 *
-	 * @return $this
+	 * {@inheritdoc}
 	 */
-	public function setDefaultContent($defaultContent)
+	public function setDefaultContent(string $defaultContent)
 	{
-		$this->defaultContent = (string) $defaultContent;
-
-		return $this;
+		$this->defaultContent = $defaultContent;
 	}
 
 	/**
-	 * @return string
+	 * {@inheritdoc}
 	 */
 	public function getDefaultContent()
 	{
-		return (string) $this->defaultContent;
+		return $this->defaultContent;
 	}
 
 	/**
-	 * @return $this
+	 * {@inheritdoc}
 	 */
 	public function enableSortable()
 	{
 		$this->sortable = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * {@inheritdoc}
 	 */
 	public function disableSortable()
 	{
 		$this->sortable = FALSE;
-
-		return $this;
 	}
 
 	/**
-	 * @return bool
+	 * {@inheritdoc}
 	 */
-	public function isSortable()
+	public function isSortable() : bool
 	{
 		return $this->sortable;
 	}
 
 	/**
-	 * @param array $orderData
-	 *
-	 * @return $this
+	 * {@inheritdoc}
 	 */
 	public function setOrderData(array $orderData)
 	{
-		$this->orderData = (array) $orderData;
-
-		return $this;
+		$this->orderData = $orderData;
 	}
 
 	/**
-	 * @return array
+	 * {@inheritdoc}
 	 */
-	public function getOrderData()
+	public function getOrderData() : array
 	{
 		return $this->orderData;
 	}
 
 	/**
-	 * @param string $type
-	 *
-	 * @return $this
-	 *
-	 * @throws Exceptions\InvalidArgumentException
+	 * {@inheritdoc}
 	 */
-	public function setOrderDataType($type)
+	public function setOrderDataType(string $type)
 	{
-		if (!in_array($type, ['dom-text', 'dom-select', 'dom-checkbox'])) {
+		if (!in_array($type, ['dom-text', 'dom-select', 'dom-checkbox'], TRUE)) {
 			throw new Exceptions\InvalidArgumentException('Invalid column order data type given.');
 		}
 
-		$this->orderDataType = (string) $type;
-
-		return $this;
+		$this->orderDataType = $type;
 	}
 
 	/**
-	 * @return string
+	 * {@inheritdoc}
 	 */
 	public function getOrderDataType()
 	{
@@ -272,121 +239,99 @@ abstract class Settings extends Column
 	}
 
 	/**
-	 * @param array $orderSequence
-	 *
-	 * @return $this
+	 * {@inheritdoc}
 	 */
 	public function setOrderSequence(array $orderSequence)
 	{
 		$this->orderSequence = $orderSequence;
-
-		return $this;
 	}
 
 	/**
-	 * @return array
+	 * {@inheritdoc}
 	 */
-	public function getOrderSequence()
+	public function getOrderSequence() : array
 	{
-		return (array) $this->orderSequence;
+		return $this->orderSequence;
 	}
 
 	/**
-	 * @return $this
+	 * {@inheritdoc}
 	 */
 	public function enableSearchable()
 	{
 		$this->searchable = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * {@inheritdoc}
 	 */
 	public function disableSearchable()
 	{
 		$this->searchable = FALSE;
-
-		return $this;
 	}
 
 	/**
-	 * @return bool
+	 * {@inheritdoc}
 	 */
-	public function isSearchable()
+	public function isSearchable() : bool
 	{
-		return $this->searchable === TRUE;
+		return $this->searchable;
 	}
 
 	/**
-	 * @param string $type
-	 *
-	 * @return $this
-	 *
-	 * @throws Exceptions\InvalidArgumentException
+	 * {@inheritdoc}
 	 */
-	public function setType($type)
+	public function setType(string $type)
 	{
 		if (!in_array($type, ['date', 'num', 'num-fmt', 'html-num', 'html-num-fmt', 'string'])) {
 			throw new Exceptions\InvalidArgumentException('Invalid column type given.');
 		}
 
-		$this->type = (string) $type;
-
-		return $this;
+		$this->type = $type;
 	}
 
 	/**
-	 * @return string
+	 * {@inheritdoc}
 	 */
 	public function getType()
 	{
-		return (string) $this->type;
+		return $this->type;
 	}
 
 	/**
-	 * @return $this
+	 * {@inheritdoc}
 	 */
 	public function enableVisibility()
 	{
 		$this->visible = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * {@inheritdoc}
 	 */
 	public function disableVisibility()
 	{
 		$this->visible = FALSE;
-
-		return $this;
 	}
 
 	/**
-	 * @return bool
+	 * {@inheritdoc}
 	 */
-	public function isVisible()
+	public function isVisible() : bool
 	{
 		return $this->visible;
 	}
 
 	/**
-	 * @param string $width
-	 *
-	 * @return $this
+	 * {@inheritdoc}
 	 */
-	public function setWidth($width)
+	public function setWidth(string $width)
 	{
 		$this->width = $width;
-
-		return $this;
 	}
 
 	/**
-	 * @return string|null
+	 * {@inheritdoc}
 	 */
 	public function getWidth()
 	{

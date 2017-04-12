@@ -2,20 +2,22 @@
 /**
  * Button.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	Components
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Components
+ * @since          1.0.0
  *
- * @date		18.10.14
+ * @date           18.10.14
  */
+
+declare(strict_types=1);
 
 namespace IPub\DataTables\Components\Buttons;
 
-use Nette;
 use Nette\Application\UI;
+use Nette\ComponentModel;
 use Nette\Forms;
 use Nette\Utils;
 use Nette\Localization;
@@ -25,89 +27,89 @@ use IPub\DataTables;
 use IPub\DataTables\Components;
 use IPub\DataTables\Exceptions;
 
+/**
+ * Action column button control
+ *
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Components
+ *
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
+ *
+ * @property-read UI\Control $parent
+ */
 class Button extends UI\Control implements IButton
 {
 	/**
-	 * @var callback|string
-	 */
-	protected $label;
-
-	/**
 	 * @var string
 	 */
-	protected $type;
+	private $type = self::TYPE_BUTTON;
 
 	/**
-	 * @var callback|string
+	 * Button label
+	 *
+	 * @var callable|string
 	 */
-	protected $title;
+	private $label;
 
 	/**
-	 * @var callback|string
+	 * Title attribute
+	 *
+	 * @var callable|string
 	 */
-	protected $class;
+	private $title;
 
 	/**
-	 * @var callback|array
+	 * Additional style class
+	 *
+	 * @var callable|string
 	 */
-	protected $attributes = [];
+	private $class;
+
+	/**
+	 * @var callable|array
+	 */
+	private $attributes = [];
 
 	/**
 	 * @var bool
 	 */
-	protected $ajax = TRUE;
+	private $ajax = TRUE;
 
 	/**
-	 * @var callback
+	 * @var callable|NULL
 	 */
-	protected $callback;
+	private $callback;
 
 	/**
-	 * @var callback|string
+	 * @var callable|string
 	 */
-	protected $link;
+	private $link;
 
 	/**
-	 * @var callback|string
+	 * @var callable|string
 	 */
-	protected $renderer;
-
-	/**
-	 * @var Components\Control
-	 */
-	protected $parent;
-
-	/**
-	 * @var UI\Form
-	 */
-	protected $form;
+	private $renderer;
 
 	/**
 	 * @var Localization\ITranslator
 	 */
-	protected $translator;
+	private $translator;
 
 	/**
 	 * @param Components\Control $parent
 	 * @param string $name
-	 * @param string $label
+	 * @param string|callable $label
 	 */
-	public function __construct(Components\Control $parent, $name, $label)
+	public function __construct(Components\Control $parent, string $name, $label)
 	{
+		parent::__construct();
+
 		$this->addComponentToGrid($parent, $name);
 
-		$this->label	= $label;
-		$this->type		= $this::TYPE_BUTTON;
+		$this->setLabel($label);
 
-		$form = $this->getForm();
-
-		$buttons = $form->getComponent($this::ID, FALSE);
-
-		if ($buttons === NULL) {
-			$buttons = $form->addContainer($this::ID);
-		}
-
-		$buttons->addSubmit($name, $label)
+		$buttonsFormContainer = $this->getButtonsFormContainer();
+		$buttonsFormContainer->addSubmit($name, $label)
 			->setValidationScope(FALSE);
 
 		$this->ajax = $parent->hasEnabledAjax();
@@ -121,9 +123,7 @@ class Button extends UI\Control implements IButton
 	 */
 	public function showAsButton()
 	{
-		$this->type = $this::TYPE_BUTTON;
-
-		return $this;
+		$this->type = self::TYPE_BUTTON;
 	}
 
 	/**
@@ -131,9 +131,7 @@ class Button extends UI\Control implements IButton
 	 */
 	public function showAsLink()
 	{
-		$this->type = $this::TYPE_LINK;
-
-		return $this;
+		$this->type = self::TYPE_LINK;
 	}
 
 	/**
@@ -141,46 +139,11 @@ class Button extends UI\Control implements IButton
 	 */
 	public function setTitle($title)
 	{
+		if (!is_string($title) && !is_callable($title)) {
+			throw new Exceptions\InvalidArgumentException(sprintf('Provided value is not valid. Only string or callable types are allowed. %s provided instead', gettype($title)));
+		}
+
 		$this->title = $title;
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getTitle($data)
-	{
-		if (is_callable($this->title)){
-			$title = call_user_func($this->title, $data);
-
-		} else {
-			$title = $this->title;
-		}
-
-		return $this->translator ? $this->translator->translate($title) : $title;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function setLabel($label)
-	{
-		$this->label = $label;
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getLabel($data)
-	{
-		if (is_callable($this->label)){
-			return call_user_func($this->label, $data);
-		}
-
-		return $this->label;
 	}
 
 	/**
@@ -188,49 +151,29 @@ class Button extends UI\Control implements IButton
 	 */
 	public function setClass($class)
 	{
+		if (!is_string($class) && !is_callable($class)) {
+			throw new Exceptions\InvalidArgumentException(sprintf('Provided value is not valid. Only string or callable types are allowed. %s provided instead', gettype($class)));
+		}
+
 		$this->class = $class;
-
-		return $this;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getClass($data)
+	public function setAttributes($attributes)
 	{
-		if (is_callable($this->class)){
-			return call_user_func($this->class, $data);
+		if (!is_array($attributes) && !is_callable($attributes)) {
+			throw new Exceptions\InvalidArgumentException(sprintf('Provided value is not valid. Only array or callable types are allowed. %s provided instead', gettype($attributes)));
 		}
 
-		return $this->class;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function addAttributes($attributes)
-	{
 		$this->attributes = $attributes;
-
-		return $this;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getAttributes($data)
-	{
-		if (is_callable($this->attributes)){
-			return call_user_func($this->attributes, $data);
-		}
-
-		return (array) $this->attributes;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function setCallback($callback)
+	public function setCallback(callable $callback)
 	{
 		$this->callback = $callback;
 
@@ -242,8 +185,8 @@ class Button extends UI\Control implements IButton
 	 */
 	public function getCallback()
 	{
-		if ($this->callback === NULL){
-			throw new Exceptions\UnknownButtonCallbackException("Button $this->name doesn't have callback.");
+		if ($this->callback === NULL) {
+			throw new Exceptions\UnknownButtonCallbackException(sprintf('Button "%s" doesn\'t have callback.', $this->name));
 		}
 
 		return $this->callback;
@@ -254,45 +197,11 @@ class Button extends UI\Control implements IButton
 	 */
 	public function setLink($link)
 	{
+		if (!is_string($link) && !is_callable($link)) {
+			throw new Exceptions\InvalidArgumentException(sprintf('Provided value is not valid. Only string or callable types are allowed. %s provided instead', gettype($link)));
+		}
+
 		$this->link = $link;
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getLink($data)
-	{
-		if (is_callable($this->link)){
-			return call_user_func($this->link, $data);
-		}
-
-		return $this->link;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function setRenderer($renderer)
-	{
-		if (is_callable($renderer)){
-			throw new Exceptions\ButtonRendererNotCallableException("Renderer for button $this->name is not callable.");
-		}
-
-		$this->renderer = $renderer;
-
-		return $this;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function setAjax($ajax = TRUE)
-	{
-		$this->ajax = $ajax;
-
-		return $this;
 	}
 
 	/**
@@ -301,8 +210,6 @@ class Button extends UI\Control implements IButton
 	public function enableAjax()
 	{
 		$this->ajax = TRUE;
-
-		return $this;
 	}
 
 	/**
@@ -311,84 +218,212 @@ class Button extends UI\Control implements IButton
 	public function disableAjax()
 	{
 		$this->ajax = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function hasEnabledAjax()
+	public function hasEnabledAjax() : bool
 	{
-		return $this->ajax === TRUE;
-	}
-
-	/**
-	 * @param Components\Control $parent
-	 * @param string $name
-	 *
-	 * @return Nette\ComponentModel\Container
-	 */
-	protected function addComponentToGrid(Components\Control $parent, $name)
-	{
-		$this->parent = $parent;
-
-		// Check container exist
-		$container = $this->parent->getComponent($this::ID, FALSE);
-		if (!$container) {
-			$this->parent->addComponent(new Nette\ComponentModel\Container, $this::ID);
-			$container = $this->parent->getComponent($this::ID);
-		}
-
-		return $container->addComponent($this, $name);
+		return $this->ajax;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getForm()
+	public function setRenderer(callable $renderer)
 	{
-		if ($this->form === NULL) {
-			$this->form = $this->parent->getComponent('dataGridForm');
-		}
-
-		return $this->form;
+		$this->renderer = $renderer;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function render($data = NULL)
+	public function render($data)
 	{
-		if (is_callable($this->renderer)){
-			return call_user_func($this->renderer, $data, $this);
+		if ($this->getCallback() === NULL && $this->getLink($data) === NULL) {
+			throw new Exceptions\InvalidStateException('Row button have to have action callback or link defined.');
 		}
 
-		if ($this->type == $this::TYPE_LINK) {
-			$button = Utils\Html::el('a');
-			$button
-				->setHref($this->getLink($data));
+		if ($this->getLink($data) !== NULL && $this->type === self::TYPE_BUTTON) {
+			throw new Exceptions\InvalidStateException('Link could be used only for button type link. Please call $button->showAsLink() in button definition.');
+		}
 
-			// Set element attributes for JS
-			$button->data('action-name', $this->getForm()->getComponent($this::ID, FALSE)->getComponent($this->name)->getHtmlName());
-			$button->data('action-value', $this->getForm()->getComponent($this::ID, FALSE)->getComponent($this->name)->caption);
+		if (is_callable($this->renderer)) {
+			echo call_user_func($this->renderer, $data, $this);
 
 		} else {
-			$button = $this->getForm()->getComponent($this::ID, FALSE)->getComponent($this->name)->getControl();
+			/** @var Forms\Controls\SubmitButton $button */
+			$button = $this->getButtonsFormContainer()->getComponent($this->name);
+
+			if ($this->type === self::TYPE_LINK) {
+				$element = Utils\Html::el('a');
+
+				if ($this->getLink($data) === NULL) {
+					$element->setAttribute('href', '#');
+
+					// Set element attributes for JS
+					$element->data('action-name', $button->getHtmlName());
+					$element->data('action-value', $button->caption);
+
+				} else {
+					$element->setAttribute('href', $this->getLink($data));
+				}
+
+			} else {
+				$element = $button->getControl();
+			}
+
+			$element->addAttributes($this->getAttributes($data));
+			$element->setText($this->getLabel($data));
+
+			if ($this->getLink($data) === NULL) {
+				$element->appendAttribute('class', 'js-data-grid-row-button');
+			}
+
+			$additionalStyleClass = $this->getClass($data);
+
+			if ($additionalStyleClass !== NULL) {
+				$element->appendAttribute('class', $additionalStyleClass);
+			}
+
+			$element->setAttribute('title', $this->getTitle($data));
+
+			// Check if ajax request is enabled
+			if ($this->hasEnabledAjax()) {
+				$element->appendAttribute('class', 'js-data-grid-ajax');
+			}
+
+			echo $element->render();
+		}
+	}
+
+	/**
+	 * Get button title
+	 *
+	 * @param mixed $data
+	 *
+	 * @return string|NULL
+	 */
+	private function getTitle($data)
+	{
+		if (is_callable($this->title)) {
+			$title = (string) call_user_func($this->title, $data);
+
+		} else {
+			$title = $this->title;
 		}
 
-		$button
-			->addAttributes($this->getAttributes($data))
-			->setText($this->getLabel($data))
-			->addClass('js-data-grid-row-button')
-			->addClass($this->getClass($data))
-			->setTitle($this->getTitle($data));
+		return $this->translator ? $this->translator->translate($title) : $title;
+	}
 
-		// Check if ajax request is enabled
-		if ($this->ajax) {
-			$button->addClass('js-data-grid-ajax');
+	/**
+	 * Set button element label
+	 *
+	 * @param callable|string $label
+	 *
+	 * @return void
+	 */
+	private function setLabel($label)
+	{
+		if (!is_string($label) && !is_callable($label)) {
+			throw new Exceptions\InvalidArgumentException(sprintf('Provided value is not valid. Only string or callable types are allowed. %s provided instead', gettype($label)));
 		}
 
-		echo $button;
+		$this->label = $label;
+	}
+
+	/**
+	 * Get button element label
+	 *
+	 * @param mixed $data
+	 *
+	 * @return string
+	 */
+	private function getLabel($data) : string
+	{
+		if (is_callable($this->label)) {
+			return (string) call_user_func($this->label, $data);
+		}
+
+		return $this->label;
+	}
+
+	/**
+	 * Get button link only for link type
+	 *
+	 * @param mixed $data
+	 *
+	 * @return string|NULL
+	 */
+	private function getLink($data)
+	{
+		if (is_callable($this->link)) {
+			return (string) call_user_func($this->link, $data);
+		}
+
+		return $this->link;
+	}
+
+	/**
+	 * Get button element class
+	 *
+	 * @param mixed $data
+	 *
+	 * @return string|NULL
+	 */
+	private function getClass($data)
+	{
+		if (is_callable($this->class)) {
+			return (string) call_user_func($this->class, $data);
+		}
+
+		return $this->class;
+	}
+
+	/**
+	 * @param mixed $data
+	 *
+	 * @return array
+	 */
+	private function getAttributes($data) : array
+	{
+		if (is_callable($this->attributes)) {
+			return (array) call_user_func($this->attributes, $data);
+		}
+
+		return $this->attributes;
+	}
+
+	/**
+	 * @return Forms\Container
+	 */
+	private function getButtonsFormContainer() : Forms\Container
+	{
+		/** @var Components\Control $gridControl */
+		$gridControl = $this->lookup(Components\Control::class);
+
+		return $gridControl->getComponent('dataGridForm')->getComponent(self::ID);
+	}
+
+	/**
+	 * @param Components\Control $grid
+	 * @param string $name
+	 *
+	 * @return void
+	 */
+	private function addComponentToGrid(Components\Control $grid, string $name)
+	{
+		/** @var ComponentModel\Container $container */
+		$container = $grid->getComponent(self::ID, FALSE);
+
+		// Check container exist
+		if (!$container) {
+			$grid->addComponent(new ComponentModel\Container, self::ID);
+
+			$container = $grid->getComponent(self::ID);
+		}
+
+		$container->addComponent($this, $name);
 	}
 }

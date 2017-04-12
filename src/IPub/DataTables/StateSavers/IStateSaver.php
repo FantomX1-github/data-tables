@@ -2,29 +2,39 @@
 /**
  * IStateSaver.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	StateSavers
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     StateSavers
+ * @since          1.0.0
  *
- * @date		18.10.14
+ * @date           18.10.14
  */
+
+declare(strict_types=1);
 
 namespace IPub\DataTables\StateSavers;
 
+/**
+ * DataTables state saver interface
+ *
+ * @package        iPublikuj:DataTables!
+ * @subpackage     StateSavers
+ *
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
+ */
 interface IStateSaver
 {
 	/**
 	 * Store JSON data to database
 	 *
-	 * @param $name
+	 * @param string $name
 	 * @param $data
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function saveState($name, $data);
+	function saveState(string $name, $data);
 
 	/**
 	 * Load JSON data from database
@@ -33,5 +43,5 @@ interface IStateSaver
 	 *
 	 * @return mixed
 	 */
-	public function loadState($name);
+	function loadState(string $name);
 }

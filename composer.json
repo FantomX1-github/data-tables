@@ -4,7 +4,7 @@
 	"description"	: "DataTables datagrid implementation for Nette Framework",
 	"keywords"		: ["nette", "datagrid", "datatables", "tables", "tools", "ipub", "ipublikuj"],
 	"homepage"		: "https://github.com/iPublikuj/data-tables",
-	"license"		: ["BSD-3-Clause", "GPL-2.0", "GPL-3.0"],
+	"license"		: ["GPL-2.0", "GPL-3.0"],
 
 	"authors": [
 		{
@@ -19,17 +19,39 @@
 		"issues"	:"https://github.com/iPublikuj/data-tables/issues"
 	},
 
+	"extra": {
+		"ipub"	: {
+			"configuration" : {
+				"extensions" : {
+					"dataTables" : "IPub\\DataTables\\DI\\DataTablesExtension"
+				}
+			}
+		}
+	},
+
 	"require": {
-		"php"				: ">=5.4",
-		"nette/application"	: "~2.2",
-		"nette/di"			: "~2.2",
-		"nette/utils"		: "~2.2",
-		"latte/latte"		: "~2.2"
+		"php"	: ">=7.0.0",
+
+		"nette/application"		: "~2.4",
+		"nette/di"				: "~2.4",
+		"nette/component-model"	: "~2.4",
+		"nette/forms"			: "~2.4",
+		"nette/http"			: "~2.4",
+		"nette/utils"			: "~2.4",
+
+		"latte/latte"	: "~2.4"
 	},
 
 	"require-dev": {
-		"nette/tester"		: "@dev",
-		"janmarek/mockista"	: "@dev"
+		"nette/bootstrap"		: "~2.4",
+		"nette/mail"			: "~2.4",
+		"nette/robot-loader"	: "~2.4",
+		"nette/safe-stream"		: "~2.3",
+		"nette/tester"			: "@dev",
+
+		"tracy/tracy"	: "@dev",
+
+		"pds/skeleton"	: "^1.0"
 	},
 
 	"autoload": {

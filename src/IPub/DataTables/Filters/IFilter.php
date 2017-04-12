@@ -1,27 +1,32 @@
 <?php
 /**
- * Filter.php
+ * IFilter.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	Filters
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ * @since          1.0.0
  *
- * @date		11.11.14
+ * @date           11.11.14
  */
+
+declare(strict_types=1);
 
 namespace IPub\DataTables\Filters;
 
-use Nette;
-use Nette\Application\UI;
+use Nette\Forms;
 use Nette\Utils;
 
-use IPub\DataTables;
-use IPub\DataTables\Components;
-use IPub\DataTables\Exceptions;
-
+/**
+ * DataTables column filter control interface
+ *
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ *
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
+ */
 interface IFilter
 {
 	/**
@@ -35,62 +40,65 @@ interface IFilter
 	const RENDER_OUTER = 'outer';
 
 	/**
+	 * @return string
+	 */
+	function getLabel() : string;
+
+	/**
 	 * Map to database column
 	 *
 	 * @param string $column
 	 * @param string $operator
 	 *
-	 * @return $this
-	 *
-	 * @throws \InvalidArgumentException
+	 * @return void
 	 */
-	public function setColumn($column, $operator = Condition::OPERATOR_OR);
+	function setColumn(string $column, string $operator = Condition::OPERATOR_OR);
 
 	/**
 	 * @return array
 	 */
-	public function getColumn();
+	function getColumn() : array;
 
 	/**
 	 * Sets custom condition
 	 *
-	 * @param $condition
+	 * @param string $condition
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setCondition($condition);
+	function setCondition(string $condition);
 
 	/**
 	 * @return string
 	 */
-	public function getCondition();
+	function getCondition() : string;
 
 	/**
 	 * Sets custom "sql" where
 	 *
 	 * @param callable $callback function($value, $source) {}
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setWhere($callback);
+	function setWhere(callable $callback);
 
 	/**
 	 * Sets custom format value
 	 *
 	 * @param string $format for example: "%%value%"
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setFormatValue($format);
+	function setFormatValue(string $format);
 
 	/**
 	 * Sets default value
 	 *
 	 * @param string $value
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setDefaultValue($value);
+	function setDefaultValue(string $value);
 
 	/**
 	 * Value representation in URI
@@ -99,22 +107,17 @@ interface IFilter
 	 *
 	 * @return string
 	 */
-	public function changeValue($value);
+	function changeValue(string $value);
 
 	/**
-	 * @return Nette\Forms\Controls\BaseControl
+	 * @return Forms\Controls\BaseControl
 	 */
-	public function getControl();
+	function getControl() : Forms\Controls\BaseControl;
 
 	/**
 	 * Returns wrapper prototype (<th> html tag)
 	 *
 	 * @return Utils\Html
 	 */
-	public function getWrapperPrototype();
-
-	/**
-	 * @return Nette\Application\UI\Form
-	 */
-	public function getForm();
+	function getWrapperPrototype() : Utils\Html;
 }

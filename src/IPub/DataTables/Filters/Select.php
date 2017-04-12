@@ -2,38 +2,45 @@
 /**
  * Select.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	Filters
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ * @since          1.0.0
  *
- * @date		11.11.14
+ * @date           11.11.14
  */
+
+declare(strict_types=1);
 
 namespace IPub\DataTables\Filters;
 
-use Nette;
 use Nette\Forms;
 
-use IPub\DataTables;
 use IPub\DataTables\Components;
 
 /**
- * @author      Petr Bugyík
+ * Select box filter control
+ *
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ *
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
+ *
+ * @property-read Components\Control $parent
  */
 class Select extends Filter
 {
 	/**
-	 * @param Components\Control $grid
+	 * @param Components\Control $parent
 	 * @param string $name
 	 * @param string $label
-	 * @param array $items for select
+	 * @param array|NULL $items
 	 */
-	public function __construct($grid, $name, $label, array $items = NULL)
+	public function __construct(Components\Control $parent, string $name, string $label, array $items = NULL)
 	{
-		parent::__construct($grid, $name, $label);
+		parent::__construct($parent, $name, $label);
 
 		if ($items !== NULL) {
 			$this->getControl()->setItems($items);
@@ -41,10 +48,13 @@ class Select extends Filter
 	}
 
 	/**
-	 * @return Forms\Controls\SelectBox
+	 * @return Forms\Controls\SelectBox|Forms\Controls\BaseControl
 	 */
-	protected function getFormControl()
+	protected function getFormControl() : Forms\Controls\BaseControl
 	{
-		return new Forms\Controls\SelectBox($this->label);
+		$control = new Forms\Controls\SelectBox($this->getLabel());
+		$control->getControlPrototype()->appendAttribute('class', 'js-grid-filter-select');
+
+		return $control;
 	}
 }

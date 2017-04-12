@@ -2,19 +2,20 @@
 /**
  * Settings.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	Components
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Components
+ * @since          1.0.0
  *
- * @date		18.10.14
+ * @date           18.10.14
  */
+
+declare(strict_types=1);
 
 namespace IPub\DataTables\Components;
 
-use Nette;
 use Nette\Application\UI;
 use Nette\Utils;
 
@@ -22,6 +23,14 @@ use IPub;
 use IPub\DataTables;
 use IPub\DataTables\Exceptions;
 
+/**
+ * DataTables control JavaScript configuration
+ *
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Components
+ *
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
+ */
 abstract class Settings extends UI\Control
 {
 	/**
@@ -31,7 +40,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $autoWidth = FALSE;
+	private $autoWidth = FALSE;
 
 	/**
 	 * Enable or disable defer rendering of cells
@@ -40,7 +49,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $deferRender = FALSE;
+	private $deferRender = FALSE;
 
 	/**
 	 * Enable or disable jQuery UI markup
@@ -49,7 +58,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $jQueryUI = FALSE;
+	private $jQueryUI = FALSE;
 
 	/**
 	 * When pagination is enabled, this option will display an option for
@@ -59,7 +68,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $lengthChange = TRUE;
+	private $lengthChange = TRUE;
 
 	/**
 	 * Enable or disable ordering of columns
@@ -68,7 +77,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $ordering = TRUE;
+	private $ordering = TRUE;
 
 	/**
 	 * Enable or disable table pagination
@@ -77,7 +86,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $paging = TRUE;
+	private $paging = TRUE;
 
 	/**
 	 * Enable or disable the display of a 'processing' indicator when the table is being processed
@@ -86,7 +95,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $processing = FALSE;
+	private $processing = FALSE;
 
 	/**
 	 * Enable or disable horizontal scrolling
@@ -95,16 +104,16 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $scrollX = FALSE;
+	private $scrollX = FALSE;
 
 	/**
 	 * Disable or set vertical scrolling
 	 *
 	 * @see http://datatables.net/reference/option/scrollY
 	 *
-	 * @var string
+	 * @var string|NULL
 	 */
-	protected $scrollY;
+	private $scrollY = NULL;
 
 	/**
 	 * Enable or disable the search abilities
@@ -113,7 +122,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $searching = TRUE;
+	private $searching = TRUE;
 
 	/**
 	 * Enable or disable server-side processing mode
@@ -122,7 +131,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $serverSide = FALSE;
+	private $serverSide = FALSE;
 
 	/**
 	 * Enable or disable state saving
@@ -131,7 +140,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $stateSave = FALSE;
+	private $stateSave = FALSE;
 
 	/**
 	 * Delay the loading of server-side data until second draw
@@ -140,7 +149,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var int|array
 	 */
-	protected $deferLoading = NULL;
+	private $deferLoading = NULL;
 
 	/**
 	 * Enable or disable destroying any existing table matching the selector and replace with the new options
@@ -149,7 +158,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $destroy = FALSe;
+	private $destroy = FALSE;
 
 	/**
 	 * Define the starting point for data display when using pagination
@@ -158,7 +167,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var int
 	 */
-	protected $displayStart = 0;
+	private $displayStart = 0;
 
 	/**
 	 * Define the table control elements to appear on the page and in what order
@@ -167,7 +176,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var string
 	 */
-	protected $dom = 'lfrtip';
+	private $dom = 'lfrtip';
 
 	/**
 	 * Define the options in the page length select list
@@ -176,7 +185,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var array
 	 */
-	protected $lengthMenu = [10, 25, 50, 100];
+	private $lengthMenu = [10, 25, 50, 100];
 
 	/**
 	 * Allows control over whether datagrid should use the top (true) unique cell that is found for a single column, or the bottom (false)
@@ -185,7 +194,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $orderCellsTop = FALSE;
+	private $orderCellsTop = FALSE;
 
 	/**
 	 * Highlight the columns being ordered in the table's body
@@ -194,7 +203,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $orderClasses = TRUE;
+	private $orderClasses = TRUE;
 
 	/**
 	 * Ordering to always be applied to the table
@@ -203,7 +212,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var array
 	 */
-	protected $orderFixed = NULL;
+	private $orderFixed = NULL;
 
 	/**
 	 * Multiple column ordering ability control
@@ -212,7 +221,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $orderMulti = TRUE;
+	private $orderMulti = TRUE;
 
 	/**
 	 * Change the initial page length (number of rows per page)
@@ -221,7 +230,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var int
 	 */
-	protected $pageLength = 10;
+	private $pageLength = 10;
 
 	/**
 	 * Pagination button display options
@@ -230,7 +239,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var string
 	 */
-	protected $pagingType = 'simple_numbers';
+	private $pagingType = 'simple_numbers';
 
 	/**
 	 * Retrieve an existing DataTables instance
@@ -239,7 +248,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $retrieve = FALSE;
+	private $retrieve = FALSE;
 
 	/**
 	 * Allow the table to reduce in height when a limited number of rows are shown
@@ -248,7 +257,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $scrollCollapse = FALSE;
+	private $scrollCollapse = FALSE;
 
 	/**
 	 * Component case-sensitive filtering option
@@ -257,7 +266,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $searchCaseInsensitive = TRUE;
+	private $searchCaseInsensitive = TRUE;
 
 	/**
 	 * Enable or disable escaping of regular expression characters in the search term
@@ -266,7 +275,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $searchRegex = FALSE;
+	private $searchRegex = FALSE;
 
 	/**
 	 * Set an initial filtering condition on the table
@@ -275,7 +284,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var string
 	 */
-	protected $searchSearch = NULL;
+	private $searchSearch = NULL;
 
 	/**
 	 * Enable or disable smart filtering
@@ -284,7 +293,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var bool
 	 */
-	protected $searchSmart = TRUE;
+	private $searchSmart = TRUE;
 
 	/**
 	 * Set a throttle frequency for searching
@@ -293,7 +302,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var int
 	 */
-	protected $searchDelay = NULL;
+	private $searchDelay = NULL;
 
 	/**
 	 * Saved state validity duration
@@ -303,7 +312,7 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var int
 	 */
-	protected $stateDuration = 7200;
+	private $stateDuration = 7200;
 
 	/**
 	 * Tab index control for keyboard navigation
@@ -312,99 +321,87 @@ abstract class Settings extends UI\Control
 	 *
 	 * @var int
 	 */
-	protected $tabIndex = 0;
+	private $tabIndex = 0;
 
 	/**
 	 * @var bool
 	 */
-	protected $ajaxSource = FALSE;
+	private $ajaxSource = FALSE;
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableAutoWidth()
 	{
 		$this->autoWidth = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableAutoWidth()
 	{
 		$this->autoWidth = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledAutoWith()
+	public function hasEnabledAutoWith() : bool
 	{
 		return $this->autoWidth;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableDeferRender()
 	{
 		$this->deferRender = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableDeferRender()
 	{
 		$this->deferRender = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledDeferRender()
+	public function hasEnabledDeferRender() : bool
 	{
 		return $this->deferRender;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableJQueryUI()
 	{
 		$this->jQueryUI = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableJQueryUI()
 	{
 		$this->jQueryUI = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function useJQueryUI()
+	public function useJQueryUI() : bool
 	{
 		return $this->jQueryUI;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableLengthChange()
 	{
@@ -412,136 +409,116 @@ abstract class Settings extends UI\Control
 
 		// When length change feature is enabled, paging have to be enabled too
 		$this->paging = TRUE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledLengthChange()
+	public function hasEnabledLengthChange() : bool
 	{
 		return $this->lengthChange;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableLengthChange()
 	{
 		$this->lengthChange = FALSE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableSorting()
 	{
 		$this->ordering = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableSorting()
 	{
 		$this->ordering = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledSorting()
+	public function hasEnabledSorting() : bool
 	{
 		return $this->ordering;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enablePaging()
 	{
 		$this->paging = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disablePaging()
 	{
 		$this->paging = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledPaging()
+	public function hasEnabledPaging() : bool
 	{
 		return $this->paging;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableProcessing()
 	{
 		$this->processing = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableProcessing()
 	{
 		$this->processing = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledProcessing()
+	public function hasEnabledProcessing() : bool
 	{
 		return $this->processing;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableScrollX()
 	{
 		$this->scrollX = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableScrollX()
 	{
 		$this->scrollX = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledScrollX()
+	public function hasEnabledScrollX() : bool
 	{
 		return $this->scrollX;
 	}
@@ -549,17 +526,15 @@ abstract class Settings extends UI\Control
 	/**
 	 * @param string $scrollY
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setScrollY($scrollY)
+	public function setScrollY(string $scrollY)
 	{
-		$this->scrollY = (string) $scrollY;
-
-		return $this;
+		$this->scrollY = $scrollY;
 	}
 
 	/**
-	 * @return string
+	 * @return string|NULL
 	 */
 	public function getScrollY()
 	{
@@ -567,143 +542,129 @@ abstract class Settings extends UI\Control
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableScrollY()
 	{
 		$this->scrollY = NULL;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableSearching()
 	{
 		$this->searching = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableSearching()
 	{
 		$this->searching = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledSearching()
+	public function hasEnabledSearching() : bool
 	{
 		return $this->searching;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableServerSide()
 	{
 		$this->serverSide = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableServerSide()
 	{
 		$this->serverSide = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function useServerSide()
+	public function hasEnabledServerSide() : bool
 	{
 		return $this->serverSide;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableStateSave()
 	{
 		$this->stateSave = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableStateSave()
 	{
 		$this->stateSave = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledStateSaving()
+	public function hasEnabledStateSaving() : bool
 	{
 		return $this->stateSave;
 	}
 
 	/**
-	 * @param string|array $deferLoading
+	 * @param int|array $deferLoading
 	 *
-	 * @return $this
+	 * @return void
+	 *
+	 * @throws Exceptions\InvalidArgumentException
 	 */
-	protected function setDeferLoading($deferLoading)
+	public function setDeferLoading($deferLoading)
 	{
-		$this->deferLoading = $deferLoading;
+		if (!is_int($deferLoading) && !is_array($deferLoading)) {
+			throw new Exceptions\InvalidArgumentException(sprintf('Provided value is not valid. Only integer or array are allowed. %s provided instead', gettype($deferLoading)));
+		}
 
-		return $this;
+		$this->deferLoading = $deferLoading;
 	}
 
 	/**
-	 * @return string|array
+	 * @return int|array|NULL
 	 */
-	protected function getDeferLoading()
+	public function getDeferLoading()
 	{
 		return $this->deferLoading;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableDestroy()
 	{
 		$this->destroy = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableDestroy()
 	{
 		$this->destroy = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledDestroy()
+	public function hasEnabledDestroy() : bool
 	{
 		return $this->destroy;
 	}
@@ -711,143 +672,125 @@ abstract class Settings extends UI\Control
 	/**
 	 * @param int $displayStart
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setDisplayStart($displayStart)
+	public function setDisplayStart(int $displayStart)
 	{
-		$this->displayStart = (int) $displayStart;
-
-		return $this;
+		$this->displayStart = $displayStart;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getDisplayStart()
+	public function getDisplayStart() : int
 	{
-		return (int) $this->displayStart;
+		return $this->displayStart;
 	}
 
 	/**
 	 * @param string $dom
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setDom($dom)
+	public function setDom(string $dom)
 	{
-		$this->dom = (string) $dom;
-
-		return $this;
+		$this->dom = $dom;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getDom()
+	public function getDom() : string
 	{
-		return (string) $this->dom;
+		return $this->dom;
 	}
 
 	/**
 	 * @param array $lengthMenu
 	 *
-	 * @return $this
+	 * @return void
 	 */
 	public function setLengthMenu(array $lengthMenu)
 	{
 		$this->lengthMenu = $lengthMenu;
-
-		return $this;
 	}
 
 	/**
 	 * @return array
 	 */
-	public function getLengthMenu()
+	public function getLengthMenu() : array
 	{
 		return $this->lengthMenu;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableOrderCellsTop()
 	{
 		$this->orderCellsTop = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableOrderCellsTop()
 	{
 		$this->orderCellsTop = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledOrderCellsTop()
+	public function hasEnabledOrderCellsTop() : bool
 	{
 		return $this->orderCellsTop;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableOrderClasses()
 	{
 		$this->orderClasses = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableOrderClasses()
 	{
 		$this->orderClasses = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledOrderClasses()
+	public function hasEnabledOrderClasses() : bool
 	{
 		return $this->orderClasses;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableMultiOrdering()
 	{
 		$this->orderMulti = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableMultiOrdering()
 	{
 		$this->orderMulti = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledMultiOrdering()
+	public function hasEnabledMultiOrdering() : bool
 	{
 		return $this->orderMulti;
 	}
@@ -855,157 +798,137 @@ abstract class Settings extends UI\Control
 	/**
 	 * @param int $pageLength
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setPageLength($pageLength)
+	public function setPageLength(int $pageLength)
 	{
-		$this->pageLength = (int) $pageLength;
-
-		return $this;
+		$this->pageLength = $pageLength;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getPageLength()
+	public function getPageLength() : int
 	{
-		return (int) $this->pageLength;
+		return $this->pageLength;
 	}
 
 	/**
 	 * @param string $pagingType
 	 *
-	 * @return $this
+	 * @return void
 	 *
 	 * @throws Exceptions\InvalidArgumentException
 	 */
-	public function setPagingType($pagingType)
+	public function setPagingType(string $pagingType)
 	{
-		if (!in_array($pagingType, ['simple', 'simple_numbers', 'full', 'full_numbers'])) {
+		if (!in_array($pagingType, ['simple', 'simple_numbers', 'full', 'full_numbers'], TRUE)) {
 			throw new Exceptions\InvalidArgumentException('Invalid paging type given.');
 		}
 
-		$this->pagingType = (string) $pagingType;
-
-		return $this;
+		$this->pagingType = $pagingType;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function getPagingType()
+	public function getPagingType() : string
 	{
-		return (string) $this->pagingType;
+		return $this->pagingType;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableRetrieve()
 	{
 		$this->retrieve = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableRetrieve()
 	{
 		$this->retrieve = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledRetrieve()
+	public function hasEnabledRetrieve() : bool
 	{
 		return $this->retrieve;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableScrollCollapse()
 	{
 		$this->scrollCollapse = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableScrollCollapse()
 	{
 		$this->scrollCollapse = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledScrollCollapse()
+	public function hasEnabledScrollCollapse() : bool
 	{
 		return $this->scrollCollapse;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableCaseSensitiveSearch()
 	{
 		$this->searchCaseInsensitive = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableCaseSensitiveSearch()
 	{
 		$this->searchCaseInsensitive = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledCaseSensitiveSearch()
+	public function hasEnabledCaseSensitiveSearch() : bool
 	{
 		return $this->searchCaseInsensitive;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableSearchRegex()
 	{
 		$this->searchRegex = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableSearchRegex()
 	{
 		$this->searchRegex = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledSearchRegex()
+	public function hasEnabledSearchRegex() : bool
 	{
 		return $this->searchRegex;
 	}
@@ -1013,47 +936,41 @@ abstract class Settings extends UI\Control
 	/**
 	 * @param string $searchString
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setDefaultSearchString($searchString)
+	public function setDefaultSearchString(string $searchString)
 	{
-		$this->searchSearch = (string) $searchString;
-
-		return $this;
+		$this->searchSearch = $searchString;
 	}
 
 	/**
-	 * @return string
+	 * @return string|NULL
 	 */
 	public function getDefaultSearchString()
 	{
-		return (string) $this->searchSearch;
+		return $this->searchSearch;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableSmartSearch()
 	{
 		$this->searchSmart = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableSmartSearch()
 	{
 		$this->searchSmart = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function hasEnabledSmartSearch()
+	public function hasEnabledSmartSearch() : bool
 	{
 		return $this->searchSmart;
 	}
@@ -1061,49 +978,43 @@ abstract class Settings extends UI\Control
 	/**
 	 * @param int $searchDelay
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setSearchDelay($searchDelay)
+	public function setSearchDelay(int $searchDelay)
 	{
-		$this->searchDelay = (int) $searchDelay;
-
-		return $this;
+		$this->searchDelay = $searchDelay;
 	}
 
 	/**
-	 * @return int
+	 * @return int|NULL
 	 */
 	public function getSearchDelay()
 	{
-		return (int) $this->searchDelay;
+		return $this->searchDelay;
 	}
 
 	/**
 	 * @param int $stateDuration
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setSaveStateDuration($stateDuration)
+	public function setSaveStateDuration(int $stateDuration)
 	{
-		$this->stateDuration = (int) $stateDuration;
-
-		return $this;
+		$this->stateDuration = $stateDuration;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function saveStateIntoSession()
 	{
 		$this->stateDuration = -1;
-
-		return $this;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getSaveStateDuration()
+	public function getSaveStateDuration() : int
 	{
 		return $this->stateDuration;
 	}
@@ -1111,47 +1022,41 @@ abstract class Settings extends UI\Control
 	/**
 	 * @param int $tabIndex
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setTabIndex($tabIndex)
+	public function setTabIndex(int $tabIndex)
 	{
-		$this->tabIndex = (int) $tabIndex;
-
-		return $this;
+		$this->tabIndex = $tabIndex;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getTabIndex()
+	public function getTabIndex() : int
 	{
 		return (int) $this->tabIndex;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function enableAjaxSource()
 	{
 		$this->ajaxSource = TRUE;
-
-		return $this;
 	}
 
 	/**
-	 * @return $this
+	 * @return void
 	 */
 	public function disableAjaxSource()
 	{
 		$this->ajaxSource = FALSE;
-
-		return $this;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function useAjaxSource()
+	public function hasEnabledAjaxSource() : bool
 	{
 		return $this->ajaxSource;
 	}
@@ -1163,52 +1068,56 @@ abstract class Settings extends UI\Control
 	{
 		$settings = new Utils\ArrayHash;
 
-		$settings->autoWidth		= $this->hasEnabledAutoWith() ? true : false;
-		$settings->deferRender		= $this->hasEnabledDeferRender() ? true : false;
-		$settings->jQueryUI			= $this->useJQueryUI() ? true : false;
-		$settings->lengthChange		= $this->hasEnabledLengthChange() ? true : false;
-		$settings->lengthChange		= $this->hasEnabledLengthChange() ? true : false;
-		$settings->ordering			= $this->hasEnabledSorting() ? true : false;
-		$settings->paging			= $this->hasEnabledPaging() ? true : false;
-		$settings->processing		= $this->hasEnabledProcessing() ? true : false;
-		$settings->ajaxRequests		= $this->hasEnabledAjax() ? true : false;
+		$settings->autoWidth = $this->hasEnabledAutoWith() ? TRUE : FALSE;
+		$settings->deferRender = $this->hasEnabledDeferRender() ? TRUE : FALSE;
+		$settings->jQueryUI = $this->useJQueryUI() ? TRUE : FALSE;
+		$settings->lengthChange = $this->hasEnabledLengthChange() ? TRUE : FALSE;
+		$settings->lengthChange = $this->hasEnabledLengthChange() ? TRUE : FALSE;
+		$settings->ordering = $this->hasEnabledSorting() ? TRUE : FALSE;
+		$settings->paging = $this->hasEnabledPaging() ? TRUE : FALSE;
+		$settings->processing = $this->hasEnabledProcessing() ? TRUE : FALSE;
+		$settings->ajaxRequests = $this->hasEnabledAjax() ? TRUE : FALSE;
+
 		if ($this->getScrollY() !== NULL) {
-			$settings->scrollY		= $this->getScrollY();
+			$settings->scrollY = $this->getScrollY();
 		}
-		$settings->searching		= $this->hasEnabledSearching() ? true : false;
-		$settings->serverSide		= $this->useServerSide() ? true : false;
-		$settings->ajax				= ($this->useServerSide() || $this->useAjaxSource()) ? $this->link('getData!') : false;
+
+		$settings->searching = $this->hasEnabledSearching() ? TRUE : FALSE;
+		$settings->serverSide = $this->hasEnabledServerSide() ? TRUE : FALSE;
+		$settings->ajax = ($this->hasEnabledServerSide() || $this->hasEnabledAjaxSource()) ? $this->link('getData!') : FALSE;
+
 		if ($this->getDeferLoading() !== NULL) {
-			$settings->deferLoading	= $this->getDeferLoading();
+			$settings->deferLoading = $this->getDeferLoading();
 		}
-		$settings->destroy			= $this->hasEnabledDestroy() ? true : false;
-		$settings->displayStart		= $this->getDisplayStart();
-		$settings->dom				= $this->getDom();
-		$settings->lengthMenu		= $this->getLengthMenu();
-		$settings->orderCellsTop	= $this->hasEnabledOrderCellsTop() ? true : false;
-		$settings->orderClasses		= $this->hasEnabledOrderClasses() ? true : false;
-		$settings->order			= $this->getDefaultSort();
-		$settings->orderMulti		= $this->hasEnabledMultiOrdering() ? true : false;
-		$settings->pageLength		= $this->getPageLength();
-		$settings->pagingType		= $this->getPagingType();
-		$settings->retrieve			= $this->hasEnabledRetrieve() ? true : false;
-		$settings->scrollCollapse	= $this->hasEnabledScrollCollapse() ? true : false;
-		$settings->tabIndex			= $this->getTabIndex();
+
+		$settings->destroy = $this->hasEnabledDestroy() ? TRUE : FALSE;
+		$settings->displayStart = $this->getDisplayStart();
+		$settings->dom = $this->getDom();
+		$settings->lengthMenu = $this->getLengthMenu();
+		$settings->orderCellsTop = $this->hasEnabledOrderCellsTop() ? TRUE : FALSE;
+		$settings->orderClasses = $this->hasEnabledOrderClasses() ? TRUE : FALSE;
+		$settings->order = $this->getDefaultSort();
+		$settings->orderMulti = $this->hasEnabledMultiOrdering() ? TRUE : FALSE;
+		$settings->pageLength = $this->getPageLength();
+		$settings->pagingType = $this->getPagingType();
+		$settings->retrieve = $this->hasEnabledRetrieve() ? TRUE : FALSE;
+		$settings->scrollCollapse = $this->hasEnabledScrollCollapse() ? TRUE : FALSE;
+		$settings->tabIndex = $this->getTabIndex();
 
 		// Search settings
 		$search = $settings->search = new Utils\ArrayHash;
-		$search->caseInsensitive	= $this->hasEnabledCaseSensitiveSearch() ? true : false;
-		$search->regex				= $this->hasEnabledSearchRegex() ? true : false;
-		$search->search				= $this->getDefaultSearchString();
-		$search->smart				= $this->hasEnabledSmartSearch() ? true : false;
-		$settings->searchDelay		= $this->getSearchDelay();
+		$search->caseInsensitive = $this->hasEnabledCaseSensitiveSearch() ? TRUE : FALSE;
+		$search->regex = $this->hasEnabledSearchRegex() ? TRUE : FALSE;
+		$search->search = $this->getDefaultSearchString();
+		$search->smart = $this->hasEnabledSmartSearch() ? TRUE : FALSE;
+		$settings->searchDelay = $this->getSearchDelay();
 
 		// DataTables state saver
 		if ($this->hasEnabledStateSaving()) {
-			$settings->stateSave		= $this->hasEnabledStateSaving() ? true : false;
-			$settings->stateDuration	= $this->getSaveStateDuration() == -1 && !$this->stateSaver ? 7200 : $this->getSaveStateDuration();
-			$settings->saveSateLink		= $this->link('saveState!');
-			$settings->loadSateLink		= $this->link('loadState!');
+			$settings->stateSave = $this->hasEnabledStateSaving() ? TRUE : FALSE;
+			$settings->stateDuration = $this->getSaveStateDuration() === -1 && !$this->hasStateSaver() ? 7200 : $this->getSaveStateDuration();
+			$settings->saveSateLink = $this->link('saveState!');
+			$settings->loadSateLink = $this->link('loadState!');
 		}
 
 		// Columns settings
@@ -1218,42 +1127,49 @@ abstract class Settings extends UI\Control
 		if ($this->hasGlobalButtons()) {
 			$columnSettings = new Utils\ArrayHash;
 
-			$columnSettings->className		= 'middle js-data-grid-row-checkbox';
-			$columnSettings->orderable		= FALSE;
-			$columnSettings->searchable		= FALSE;
-			$columnSettings->visible		= TRUE;
-			$columnSettings->name			= 'rowSelection';
-			if ($this->useServerSide()) {
-				$columnSettings->data		= 'rowSelection';
+			$columnSettings->className = 'middle js-data-grid-row-checkbox';
+			$columnSettings->orderable = FALSE;
+			$columnSettings->searchable = FALSE;
+			$columnSettings->visible = TRUE;
+			$columnSettings->name = 'rowSelection';
+			if ($this->hasEnabledServerSide()) {
+				$columnSettings->data = 'rowSelection';
 			}
 
 			$settings->columns[] = $columnSettings;
 		}
 
-		foreach($this->getColumns() as $column) {
+		/** @var DataTables\Columns\IColumn $column */
+		foreach ($this->getColumns() as $column) {
 			$columnSettings = new Utils\ArrayHash;
 
-			$columnSettings->cellType		= $column->getCellType();
-			$columnSettings->className		= $column->getClassName();
-			if ($this->useServerSide()) {
-				$columnSettings->data		= $column->getName();
+			$columnSettings->cellType = $column->getCellType();
+			$columnSettings->className = $column->getClassName();
+
+			if ($this->hasEnabledServerSide()) {
+				$columnSettings->data = $column->getName();
 			}
-			$columnSettings->defaultContent	= $column->getDefaultContent();
-			$columnSettings->name			= $column->getName();
-			$columnSettings->orderable		= $column->isSortable();
+
+			$columnSettings->defaultContent = $column->getDefaultContent();
+			$columnSettings->name = $column->getName();
+			$columnSettings->orderable = $column->isSortable();
+
 			if ($column->getOrderData() !== NULL) {
-				$columnSettings->orderData		= $column->getOrderData();
+				$columnSettings->orderData = $column->getOrderData();
 			}
+
 			if ($column->getOrderDataType() !== NULL) {
-				$columnSettings->orderDataType	= $column->getOrderDataType();
+				$columnSettings->orderDataType = $column->getOrderDataType();
 			}
-			$columnSettings->orderSequence	= $column->getOrderSequence();
-			$columnSettings->searchable		= $column->isSearchable();
-			$columnSettings->title			= $column->getLabel();
-			$columnSettings->type			= $column->getType();
-			$columnSettings->visible		= $column->isVisible();
+
+			$columnSettings->orderSequence = $column->getOrderSequence();
+			$columnSettings->searchable = $column->isSearchable();
+			$columnSettings->title = $column->getLabel();
+			$columnSettings->type = $column->getType();
+			$columnSettings->visible = $column->isVisible();
+
 			if ($column->getWidth() !== NULL) {
-				$columnSettings->width		= $column->getWidth();
+				$columnSettings->width = $column->getWidth();
 			}
 
 			$settings->columns[] = $columnSettings;
@@ -1261,4 +1177,34 @@ abstract class Settings extends UI\Control
 
 		return $settings;
 	}
+
+	/**
+	 * @return bool
+	 */
+	abstract function hasEnabledAjax() : bool;
+
+	/**
+	 * @return bool
+	 */
+	abstract function hasStateSaver() : bool;
+
+	/**
+	 * @return bool
+	 */
+	abstract function hasColumns() : bool;
+
+	/**
+	 * @return DataTables\Components\Columns\IColumn[]
+	 */
+	abstract function getColumns() : array;
+
+	/**
+	 * @return bool
+	 */
+	abstract function hasGlobalButtons() : bool;
+
+	/**
+	 * @return DataTables\Components\Actions\IButton[]
+	 */
+	abstract function getGlobalButtons() : array;
 }

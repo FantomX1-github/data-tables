@@ -2,59 +2,85 @@
 /**
  * Text.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	Filters
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ * @since          1.0.0
  *
- * @date		11.11.14
+ * @date           11.11.14
  */
+
+declare(strict_types=1);
 
 namespace IPub\DataTables\Filters;
 
-use Nette;
 use Nette\Forms;
 
+use IPub\DataTables\Components;
+
+/**
+ * Text field filter control
+ *
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ *
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
+ *
+ * @property-read Components\Control $parent
+ */
 class Text extends Filter
 {
 	/**
 	 * @var string
 	 */
-	protected $condition = 'LIKE ?';
+	const CONDITION = 'LIKE ?';
 
 	/**
 	 * @var string
 	 */
-	protected $formatValue = '%%value%';
+	const FORMAT_VALUE = '%%value%';
 
 	/**
 	 * @var bool
 	 */
-	protected $suggestion = FALSE;
+	private $suggestion = FALSE;
 
 	/**
-	 * @var mixed
+	 * @var string|callable|NULL
 	 */
-	protected $suggestionColumn;
+	private $suggestionColumn = NULL;
 
 	/**
 	 * @var int
 	 */
-	protected $suggestionLimit = 10;
+	private $suggestionLimit = 10;
 
 	/**
 	 * @var callback
 	 */
-	protected $suggestionCallback;
+	private $suggestionCallback;
+
+	/**
+	 * @param Components\Control $parent
+	 * @param string $name
+	 * @param string $label
+	 */
+	public function __construct(Components\Control $parent, string $name, string $label)
+	{
+		parent::__construct($parent, $name, $label);
+
+		$this->setFormatValue(self::FORMAT_VALUE);
+		$this->setCondition(self::CONDITION);
+	}
 
 	/**
 	 * Allows suggestion
 	 *
-	 * @param mixed $column
+	 * @param string|callable $column
 	 *
-	 * @return $this
+	 * @return void
 	 */
 	public function setSuggestion($column = NULL)
 	{
@@ -62,22 +88,20 @@ class Text extends Filter
 		$this->suggestionColumn = $column;
 
 		$prototype = $this->getControl()->getControlPrototype();
-		$prototype->attrs['autocomplete'] = 'off';
-		$prototype->class[] = 'suggest';
+		$prototype->setAttribute('autocomplete', 'off');
+		$prototype->appendAttribute('class', 'suggest');
 
 		$filter = $this;
 
-		$this->grid->onRender[] = function() use ($prototype, $filter) {
+		$this->parent->onRender[] = function () use ($prototype, $filter) {
 			$replacement = '-query-';
 
 			$prototype->data('js-data-grid-suggest-replacement', $replacement);
 			$prototype->data('js-data-grid-suggest-limit', $filter->suggestionLimit);
 			$prototype->data('js-data-grid-suggest-handler', $filter->link('suggest!', [
-				'query' => $replacement
+				'query' => $replacement,
 			]));
 		};
-
-		return $this;
 	}
 
 	/**
@@ -85,30 +109,24 @@ class Text extends Filter
 	 *
 	 * @param int $limit
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setSuggestionLimit($limit)
+	public function setSuggestionLimit(int $limit)
 	{
-		$this->suggestionLimit = (int) $limit;
-
-		return $this;
+		$this->suggestionLimit = $limit;
 	}
 
 	/**
 	 * Sets custom data callback
 	 *
-	 * @param callback $callback
+	 * @param callable $callback
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setSuggestionCallback($callback)
+	public function setSuggestionCallback(callable $callback)
 	{
 		$this->suggestionCallback = $callback;
-
-		return $this;
 	}
-
-	/**********************************************************************************************/
 
 	/**
 	 * @return int
@@ -123,42 +141,46 @@ class Text extends Filter
 	 *
 	 * @throws \Exception
 	 */
-	public function handleSuggest($query)
+	public function handleSuggest(string $query)
 	{
-		$this->grid->onRegistered && $this->grid->onRegistered($this->grid);
 		$name = $this->getName();
 
 		if (!$this->getPresenter()->isAjax() || !$this->suggestion || $query == '') {
 			$this->getPresenter()->terminate();
 		}
 
-		$actualFilter = $this->grid->getActualFilter();
+		$actualFilter = $this->parent->getActualFilter();
+
 		if (isset($actualFilter[$name])) {
 			unset($actualFilter[$name]);
 		}
 
-		$conditions = $this->grid->__getConditions($actualFilter);
+		$conditions = $this->parent->__getConditions($actualFilter);
 
 		if ($this->suggestionCallback === NULL) {
 			$conditions[] = $this->__getCondition($query);
 
 			$column = $this->suggestionColumn ? $this->suggestionColumn : current($this->getColumn());
-			$items = $this->grid->model->suggest($column, $conditions, $this->suggestionLimit);
+			$items = $this->parent->getModel()->suggest($column, $conditions, $this->suggestionLimit);
 
 		} else {
-			$items = callback($this->suggestionCallback)->invokeArgs(array($query, $actualFilter, $conditions));
+			$items = callback($this->suggestionCallback)->invokeArgs([$query, $actualFilter, $conditions]);
+
 			if (!is_array($items)) {
 				throw new \Exception('Items must be an array.');
 			}
 		}
 
-		//sort items - first beginning of item is same as query, then case sensitive and case insensitive
-		$startsWith = $caseSensitive = $caseInsensitive = array();
+		// Sort items - first beginning of item is same as query, then case sensitive and case insensitive
+		$startsWith = $caseSensitive = $caseInsensitive = [];
+
 		foreach ($items as $item) {
 			if (stripos($item, $query) === 0) {
 				$startsWith[] = $item;
+
 			} elseif (strpos($item, $query) !== FALSE) {
 				$caseSensitive[] = $item;
+
 			} else {
 				$caseInsensitive[] = $item;
 			}
@@ -169,16 +191,17 @@ class Text extends Filter
 		sort($caseInsensitive);
 
 		$items = array_merge($startsWith, $caseSensitive, $caseInsensitive);
-		$this->getPresenter()->sendResponse(new \Nette\Application\Responses\JsonResponse($items));
+
+		$this->getPresenter()->sendJson($items);
 	}
 
 	/**
-	 * @return Forms\Controls\TextInput
+	 * @return Forms\Controls\TextInput|Forms\Controls\BaseControl
 	 */
-	protected function getFormControl()
+	protected function getFormControl() : Forms\Controls\BaseControl
 	{
-		$control = new Forms\Controls\TextInput($this->label);
-		$control->getControlPrototype()->class[] = 'text';
+		$control = new Forms\Controls\TextInput($this->getLabel());
+		$control->getControlPrototype()->appendAttribute('class', 'js-grid-filter-text');
 
 		return $control;
 	}
