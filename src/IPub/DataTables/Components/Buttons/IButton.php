@@ -42,6 +42,11 @@ interface IButton
 	const TYPE_LINK = 'link';
 
 	/**
+	 * @return string
+	 */
+	function getName();
+
+	/**
 	 * Set button type to button element
 	 *
 	 * @return void

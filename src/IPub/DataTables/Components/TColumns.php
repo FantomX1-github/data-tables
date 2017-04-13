@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace IPub\DataTables\Components;
 
 use Nette\ComponentModel;
+use Nette\Forms;
 
 use IPub\DataTables\Columns;
 use IPub\DataTables\Exceptions;
@@ -202,7 +203,7 @@ trait TColumns
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * @return Columns\IColumn[]
 	 */
 	public function getColumns() : array
 	{
@@ -244,7 +245,7 @@ trait TColumns
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * @return bool
 	 */
 	public function hasColumns() : bool
 	{
@@ -265,6 +266,36 @@ trait TColumns
 		$columnsContainer = $this->getComponent(Columns\IColumn::ID, FALSE);
 
 		return $columnsContainer !== NULL && $columnsContainer->getComponent($columnName, FALSE) ? TRUE : FALSE;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isEditable() : bool
+	{
+		foreach ($this->getColumns() as $column) {
+			if ($column->isEditable()) {
+				return TRUE;
+			}
+		}
+
+		return FALSE;
+	}
+
+	/**
+	 * @param string $name
+	 *
+	 * @return Forms\IControl
+	 *
+	 * @throws Exceptions\UnknownColumnException
+	 */
+	public function getColumnInput(string $name) : Forms\IControl
+	{
+		if (!$this->columnExists($name)) {
+			throw new Exceptions\UnknownColumnException(sprintf('Column "%s" doesn\'t exists.', $name ));
+		}
+
+		return $this['gridForm']['rowForm'][$name];
 	}
 
 	/**

@@ -188,7 +188,7 @@ abstract class Settings extends UI\Control
 	private $lengthMenu = [10, 25, 50, 100];
 
 	/**
-	 * Allows control over whether datagrid should use the top (true) unique cell that is found for a single column, or the bottom (false)
+	 * Allows control over whether grid should use the top (true) unique cell that is found for a single column, or the bottom (false)
 	 *
 	 * @see http://datatables.net/reference/option/orderCellsTop
 	 *
@@ -1194,7 +1194,7 @@ abstract class Settings extends UI\Control
 	abstract function hasColumns() : bool;
 
 	/**
-	 * @return DataTables\Components\Columns\IColumn[]
+	 * @return DataTables\Columns\IColumn[]
 	 */
 	abstract function getColumns() : array;
 
@@ -1207,4 +1207,9 @@ abstract class Settings extends UI\Control
 	 * @return DataTables\Components\Actions\IButton[]
 	 */
 	abstract function getGlobalButtons() : array;
+
+	/**
+	 * @return array
+	 */
+	abstract protected function getDefaultSort() : array;
 }

@@ -72,7 +72,7 @@ class Link extends Column
 			echo call_user_func($this->getRenderer(), $row);
 
 		} else {
-			$value = $this->getColumnValue($row);
+			$value = $this->getGrid()->getModel()->getColumnValue($row, $this->getColumn());
 
 			if ($value !== NULL) {
 				$href = $this->formatHref((string) $value);

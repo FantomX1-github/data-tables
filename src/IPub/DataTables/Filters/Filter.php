@@ -43,12 +43,7 @@ abstract class Filter extends UI\Control implements IFilter
 	private $label;
 
 	/**
-	 * @var string
-	 */
-	private $type;
-
-	/**
-	 * @var array
+	 * @var string[]
 	 */
 	private $column = [];
 
@@ -89,17 +84,9 @@ abstract class Filter extends UI\Control implements IFilter
 		$this->addFilterToContainer($parent, $name);
 
 		$this->label = $label;
-		$this->type = get_class($this);
 
-		$form = $this->getForm();
-
-		$filters = $form->getComponent(self::ID, FALSE);
-
-		if ($filters === NULL) {
-			$filters = $form->addContainer(self::ID);
-		}
-
-		$filters->addComponent($this->getFormControl(), $name);
+		$filtersContainer = $this->getFilterForm();
+		$filtersContainer->addComponent($this->getFormControl(), $name);
 	}
 
 	/**
@@ -118,7 +105,7 @@ abstract class Filter extends UI\Control implements IFilter
 		$columnAlreadySet = count($this->column) > 0;
 
 		if (!Condition::isOperator($operator) && $columnAlreadySet) {
-			throw new Exceptions\InvalidArgumentException('Operator must be Condition::OPERATOR_AND or Condition::OPERATOR_OR.');
+			throw new Exceptions\InvalidArgumentException('Operator must be IPub\DataTables\Filters\Condition::OPERATOR_AND or IPub\DataTables\Filters\Condition::OPERATOR_OR.');
 		}
 
 		if ($columnAlreadySet) {
@@ -165,28 +152,10 @@ abstract class Filter extends UI\Control implements IFilter
 	/**
 	 * {@inheritdoc
 	 */
-	public function getColumn() : array
-	{
-		if (!$this->column) {
-			$column = $this->getName();
-
-			if ($columnComponent = $this->getGrid()->getColumn($column, FALSE)) {
-				$column = $columnComponent->getColumn(); // Use db column from column component
-			}
-
-			$this->setColumn($column);
-		}
-
-		return $this->column;
-	}
-
-	/**
-	 * {@inheritdoc
-	 */
 	public function getControl() : Forms\Controls\BaseControl
 	{
 		if ($this->control === NULL) {
-			$this->control = $this->getForm()->getComponent(self::ID)->getComponent($this->getName());
+			$this->control = $this->getFilterForm()->getComponent($this->getName());
 		}
 
 		return $this->control;
@@ -208,17 +177,9 @@ abstract class Filter extends UI\Control implements IFilter
 	}
 
 	/**
-	 * {@inheritdoc
-	 */
-	public function getCondition() : string
-	{
-		return $this->condition;
-	}
-
-	/**
-	 * @param string $value
+	 * @param mixed $value
 	 *
-	 * @return Condition
+	 * @return Condition|bool
 	 *
 	 * @throws Exceptions\InvalidArgumentException
 	 */
@@ -237,10 +198,10 @@ abstract class Filter extends UI\Control implements IFilter
 			$condition = Condition::setup($this->getColumn(), $condition, $this->formatValue($value));
 
 		} elseif ($condition instanceof Condition) {
-			$condition = $condition;
+			// Nothing to do here
 
 		} elseif (is_callable($condition)) {
-			$condition = callback($condition)->invokeArgs([$value]);
+			$condition = call_user_func($condition, $value);
 
 		} elseif (is_array($condition)) {
 			$condition = isset($condition[$value])
@@ -248,11 +209,13 @@ abstract class Filter extends UI\Control implements IFilter
 				: Condition::setupEmpty();
 		}
 
-		if (is_array($condition)) { // For user-defined condition by array or callback
+		if (is_array($condition)) {
+			// For user-defined condition by array or callback
 			$condition = Condition::setupFromArray($condition);
 
 		} elseif ($condition !== NULL && !$condition instanceof Condition) {
 			$type = gettype($condition);
+
 			throw new Exceptions\InvalidArgumentException(sprintf('Condition must be array or Condition object. %s given.', $type));
 		}
 
@@ -262,31 +225,94 @@ abstract class Filter extends UI\Control implements IFilter
 	/**
 	 * {@inheritdoc
 	 */
-	public function changeValue(string $value)
+	public function changeValue($value)
 	{
 		return $value;
 	}
 
 	/**
-	 * @return Forms\Controls\BaseControl
+	 * @return Forms\IControl
 	 */
-	abstract protected function getFormControl() : Forms\Controls\BaseControl;
+	abstract protected function getFormControl() : Forms\IControl;
+
+	/**
+	 * @return array
+	 */
+	protected function getColumn() : array
+	{
+		if ($this->column === []) {
+			$column = $this->getName();
+
+			$columnComponent = $this->getGrid()->getColumn($column, FALSE);
+
+			if ($columnComponent !== NULL) {
+				$column = $columnComponent->getColumn(); // Use db column from column component
+			}
+
+			$this->setColumn($column);
+		}
+
+		return $this->column;
+	}
+
+	/**
+	 * @return string
+	 */
+	protected function getCondition() : string
+	{
+		return $this->condition;
+	}
+
+	/**
+	 * @return callable|NULL
+	 */
+	protected function getWhere()
+	{
+		return $this->where;
+	}
 
 	/**
 	 * Format value for database
 	 *
-	 * @param string $value
+	 * @param mixed $value
 	 *
-	 * @return string
+	 * @return string|NULL
 	 */
-	private function formatValue(string $value) : string
+	protected function formatValue($value)
 	{
 		if ($this->formatValue !== NULL) {
-			return str_replace(static::VALUE_IDENTIFIER, $value, $this->formatValue);
+			return str_replace(self::VALUE_IDENTIFIER, $value, $this->formatValue);
 
 		} else {
 			return $value;
 		}
+	}
+
+	/**
+	 * @return Components\Control
+	 */
+	private function getGrid() : Components\Control
+	{
+		/** @var Components\Control $gridControl */
+		$gridControl = $this->lookup(Components\Control::class);
+
+		return $gridControl;
+	}
+
+	/**
+	 * @return Forms\Container
+	 */
+	private function getFilterForm() : Forms\Container
+	{
+		$gridControl = $this->getGrid();
+
+		$filtersContainer = $gridControl['gridForm']->getComponent(self::ID, FALSE);
+
+		if ($filtersContainer === NULL) {
+			$filtersContainer = $gridControl['gridForm']->addContainer(self::ID);
+		}
+
+		return $filtersContainer;
 	}
 
 	/**
@@ -308,24 +334,5 @@ abstract class Filter extends UI\Control implements IFilter
 		}
 
 		$container->addComponent($this, $name);
-	}
-
-	/**
-	 * @return UI\Form
-	 */
-	private function getForm() : UI\Form
-	{
-		return $this->getGrid()->getComponent('dataGridForm');
-	}
-
-	/**
-	 * @return Components\Control
-	 */
-	private function getGrid() : Components\Control
-	{
-		/** @var Components\Control $gridControl */
-		$gridControl = $this->parent->lookup(Components\Control::class);
-
-		return $gridControl;
 	}
 }

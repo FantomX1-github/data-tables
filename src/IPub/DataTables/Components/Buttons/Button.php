@@ -403,7 +403,7 @@ class Button extends UI\Control implements IButton
 		/** @var Components\Control $gridControl */
 		$gridControl = $this->lookup(Components\Control::class);
 
-		return $gridControl->getComponent('dataGridForm')->getComponent(self::ID);
+		return $gridControl->getComponent('gridForm')->getComponent(self::ID);
 	}
 
 	/**

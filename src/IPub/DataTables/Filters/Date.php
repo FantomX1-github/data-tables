@@ -2,64 +2,77 @@
 /**
  * Date.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	Filters
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ * @since          1.0.0
  *
- * @date		13.11.14
+ * @date           13.11.14
  */
+
+declare(strict_types=1);
 
 namespace IPub\DataTables\Filters;
 
-use Nette;
 use Nette\Forms;
 
+use IPub\DataTables\Components;
+
 /**
- * @author      Petr Bugyík
+ * DataTables column date filter control
  *
- * @property string $dateFormatInput
- * @property string $dateFormatOutput
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ *
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
  */
 class Date extends Text
 {
 	/**
 	 * @var string
 	 */
-	protected $formatValue;
+	private $condition = '= ?';
 
 	/**
 	 * @var string
 	 */
-	protected $dateFormatInput = 'd.m.Y';
+	private $dateFormatInput = 'd.m.Y';
 
 	/**
 	 * @var string
 	 */
-	protected $dateFormatOutput = 'Y-m-d%';
+	private $dateFormatOutput = 'Y-m-d%';
+
+	/**
+	 * @param Components\Control $parent
+	 * @param string $name
+	 * @param string $label
+	 */
+	public function __construct(Components\Control $parent, string $name, string $label)
+	{
+		parent::__construct($parent, $name, $label);
+
+		$this->setCondition($this->condition);
+	}
 
 	/**
 	 * Sets date-input format
 	 *
 	 * @param string $format
 	 *
-	 * @return Date
+	 * @return void
 	 */
-	public function setDateFormatInput($format)
+	public function setDateFormatInput(string $format)
 	{
 		$this->dateFormatInput = $format;
-
-		return $this;
 	}
 
 	/**
-	 * Returns date-input format
-	 *
 	 * @return string
 	 */
-	public function getDateFormatInput()
+	public function getDateFormatInput() : string
 	{
 		return $this->dateFormatInput;
 	}
@@ -69,54 +82,43 @@ class Date extends Text
 	 *
 	 * @param string $format
 	 *
-	 * @return Date
+	 * @return void
 	 */
-	public function setDateFormatOutput($format)
+	public function setDateFormatOutput(string $format)
 	{
 		$this->dateFormatOutput = $format;
-
-		return $this;
 	}
 
 	/**
-	 * Returns date-output format
-	 *
-	 * @return string
-	 */
-	public function getDateFormatOutput()
-	{
-		return $this->dateFormatOutput;
-	}
-
-	/**
-	 * @return Forms\Controls\TextInput
-	 */
-	protected function getFormControl()
-	{
-		$control = parent::getFormControl();
-		$control->getControlPrototype()->class[] = 'date';
-		$control->getControlPrototype()->attrs['autocomplete'] = 'off';
-
-		return $control;
-	}
-
-	/**
-	 * @param string $value
-	 *
-	 * @return Condition
-	 *
-	 * @throws \Exception
+	 * {@inheritdoc}
 	 */
 	public function __getCondition($value)
 	{
-		$condition = $this->condition;
-		if ($this->where === NULL && is_string($condition)) {
+		$condition = $this->getCondition();
+
+		if ($this->getWhere() === NULL && is_string($condition)) {
 			$column = $this->getColumn();
-			return ($date = \DateTime::createFromFormat($this->dateFormatInput, $value))
-				? Condition::setupFromArray(array($column, $condition, $date->format($this->dateFormatOutput)))
+
+			$date = \DateTime::createFromFormat($this->dateFormatInput, $value);
+
+			return $date !== FALSE
+				? Condition::setupFromArray([$column, $condition, $date->format($this->dateFormatOutput)])
 				: Condition::setupEmpty();
 		}
 
 		return parent::__getCondition($value);
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	protected function getFormControl() : Forms\IControl
+	{
+		/** @var Forms\Controls\TextInput $control */
+		$control = parent::getFormControl();
+		$control->getControlPrototype()->appendAttribute('class', 'js-grid-filter-date');
+		$control->getControlPrototype()->setAttribute('autocomplete', 'off');
+
+		return $control;
 	}
 }

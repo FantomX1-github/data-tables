@@ -30,7 +30,7 @@ use Nette\Utils;
 interface IFilter
 {
 	/**
-	 * Components group ID in datagrid
+	 * Components group ID in grid
 	 */
 	const ID = 'filters';
 
@@ -55,11 +55,6 @@ interface IFilter
 	function setColumn(string $column, string $operator = Condition::OPERATOR_OR);
 
 	/**
-	 * @return array
-	 */
-	function getColumn() : array;
-
-	/**
 	 * Sets custom condition
 	 *
 	 * @param string $condition
@@ -67,11 +62,6 @@ interface IFilter
 	 * @return void
 	 */
 	function setCondition(string $condition);
-
-	/**
-	 * @return string
-	 */
-	function getCondition() : string;
 
 	/**
 	 * Sets custom "sql" where
@@ -103,11 +93,11 @@ interface IFilter
 	/**
 	 * Value representation in URI
 	 *
-	 * @param string $value
+	 * @param mixed $value
 	 *
 	 * @return string
 	 */
-	function changeValue(string $value);
+	function changeValue($value);
 
 	/**
 	 * @return Forms\Controls\BaseControl

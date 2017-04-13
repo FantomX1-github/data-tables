@@ -27,8 +27,6 @@ use IPub\DataTables\Components;
  * @subpackage     Filters
  *
  * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
- *
- * @property-read Components\Control $parent
  */
 class Select extends Filter
 {
@@ -48,9 +46,9 @@ class Select extends Filter
 	}
 
 	/**
-	 * @return Forms\Controls\SelectBox|Forms\Controls\BaseControl
+	 * @return Forms\Controls\SelectBox|Forms\IControl
 	 */
-	protected function getFormControl() : Forms\Controls\BaseControl
+	protected function getFormControl() : Forms\IControl
 	{
 		$control = new Forms\Controls\SelectBox($this->getLabel());
 		$control->getControlPrototype()->appendAttribute('class', 'js-grid-filter-select');

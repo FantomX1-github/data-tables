@@ -1,6 +1,6 @@
 <div n:snippet="dataGrid" class="dataTables" data-settings="{json_encode($control->formatSettings())}">
 
-	<form n:name="dataGridForm">
+	<form n:name="gridForm">
 
 		<div id="{$control->lookupPath('Nette\Application\UI\Presenter')}Wrapper">
 
@@ -21,7 +21,7 @@
 				<tr n:if="count($rows)" n:foreach="$rows as $row" id="row_{$row->$primaryKey}">
 					<td n:if="$control->hasGlobalButtons()">
 						{if $control->getActiveRowForm() == $row->$primaryKey && $control->isEditable()}
-							{$control['dataGridForm']['rowForm'][$primaryKey]->getControl()}
+							{$control['gridForm']['rowForm'][$primaryKey]->getControl()}
 						{else}
 							{$control->createRowCheckbox($row->$primaryKey)}
 						{/if}
@@ -29,7 +29,7 @@
 					{foreach $columns as $column}
 						{$column->getCellPrototype($row)->startTag()|noescape}
 						{if $control->isEditable() && $column->isEditable() && $control->getActiveRowForm() == $row->$primaryKey}
-							{$control['dataGridForm']['rowForm'][$column->getName()]->getControl()}
+							{$control['gridForm']['rowForm'][$column->getName()]->getControl()}
 						{else}
 							{control $column $row}
 						{/if}
@@ -46,8 +46,8 @@
 			</table>
 
 			<div n:if="$control->hasGlobalButtons()" class="">
-				<select n:name="$control['dataGridForm']['globalAction']['name']" />
-				<input n:name="$control['dataGridForm']['globalAction']['send']" />
+				<select n:name="$control['gridForm']['globalAction']['name']" />
+				<input n:name="$control['gridForm']['globalAction']['send']" />
 			</div>
 
 		</div>

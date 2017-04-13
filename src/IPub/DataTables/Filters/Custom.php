@@ -2,51 +2,55 @@
 /**
  * Custom.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	Filters
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ * @since          1.0.0
  *
- * @date		13.11.14
+ * @date           13.11.14
  */
+
+declare(strict_types=1);
 
 namespace IPub\DataTables\Filters;
 
-use Nette;
 use Nette\Forms;
 
-use IPub\DataTables;
 use IPub\DataTables\Components;
 
 /**
- * @author      Petr Bugyík
+ * DataTables column custom filter control
+ *
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ *
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
  */
 class Custom extends Filter
 {
 	/**
 	 * @var Forms\IControl
 	 */
-	protected $formControl;
+	private $formControl;
 
 	/**
-	 * @param Components\Control $grid
+	 * @param Components\Control $parent
 	 * @param string $name
-	 * @param string $label
-	 * @param Forms\IControl $formControl
+	 * @param Forms\IControl|Forms\Controls\BaseControl $formControl
 	 */
-	public function __construct($grid, $name, $label, Forms\IControl $formControl)
+	public function __construct(Components\Control $parent, string $name, Forms\IControl $formControl)
 	{
-		$this->formControl = $formControl;
+		parent::__construct($parent, $name, $formControl->caption);
 
-		parent::__construct($grid, $name, $label);
+		$this->formControl = $formControl;
 	}
 
 	/**
 	 * @return Forms\IControl
 	 */
-	public function getFormControl()
+	protected function getFormControl() : Forms\IControl
 	{
 		return $this->formControl;
 	}

@@ -2,57 +2,70 @@
 /**
  * Condition.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	Filters
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ * @since          1.0.0
  *
- * @date		21.10.14
+ * @date           21.10.14
  */
+
+declare(strict_types=1);
 
 namespace IPub\DataTables\Filters;
 
 use Nette;
-use Nette\Utils;
 
-use IPub\DataTables;
 use IPub\DataTables\Exceptions;
 
 /**
  * Builds filter condition
  *
- * @author			Petr Bugyík
+ * @author            Petr Bugyík
  *
- * @property-read	callable $callback
- * @property-write	array $column
- * @property-write	array $condition
- * @property-write	array $value
+ * @property-read callable $callback
+ * @property-write array $column
+ * @property-write array $condition
+ * @property-write array $value
  */
-class Condition extends Nette\Object
+class Condition
 {
-	const OPERATOR_OR	= 'OR';
-	const OPERATOR_AND	= 'AND';
+	/**
+	 * Implement nette smart magic
+	 */
+	use Nette\SmartObject;
 
-	/** @var array */
-	protected $column;
+	const OPERATOR_OR = 'OR';
+	const OPERATOR_AND = 'AND';
 
-	/** @var array */
-	protected $condition;
+	/**
+	 * @var array
+	 */
+	private $column = [];
 
-	/** @var array */
-	protected $value;
+	/**
+	 * @var array
+	 */
+	private $condition = [];
 
-	/** @var callable */
-	protected $callback;
+	/**
+	 * @var array
+	 */
+	private $value = [];
+
+	/**
+	 * @var callable
+	 */
+	private $callback;
 
 	/**
 	 * @param mixed $column
-	 * @param mixed $condition
-	 * @param mixed $value
+	 * @param string|NULL $condition
+	 * @param mixed|NULL $value
 	 */
-	public function __construct($column, $condition, $value = NULL)
+	public function __construct($column, string $condition = NULL, $value = NULL)
 	{
 		$this->setColumn($column);
 		$this->setCondition($condition);
@@ -62,7 +75,7 @@ class Condition extends Nette\Object
 	/**
 	 * @param mixed $column
 	 *
-	 * @return $this
+	 * @return void
 	 *
 	 * @throws Exceptions\InvalidArgumentException
 	 */
@@ -79,8 +92,7 @@ class Condition extends Nette\Object
 			for ($i = 0; $i < $count; $i++) {
 				$item = $column[$i];
 				if ($i & 1 && !self::isOperator($item)) {
-					$msg = "The even values of column must be 'AND' or 'OR', '$item' given.";
-					throw new Exceptions\InvalidArgumentException($msg);
+					throw new Exceptions\InvalidArgumentException(sprintf('The even values of column must be \'AND\' or \'OR\', "%s" given.', $item));
 				}
 			}
 
@@ -89,70 +101,73 @@ class Condition extends Nette\Object
 		}
 
 		$this->column = $column;
-
-		return $this;
 	}
-
-	/**
-	 * @param mixed $condition
-	 *
-	 * @return $this
-	 */
-	public function setCondition($condition)
-	{
-		$this->condition = (array) $condition;
-
-		return $this;
-	}
-
-	/**
-	 * @param mixed $value
-	 *
-	 * @return $this
-	 */
-	public function setValue($value)
-	{
-		$this->value = (array) $value;
-
-		return $this;
-	}
-
-	/**********************************************************************************************/
 
 	/**
 	 * @return array
 	 */
-	public function getColumn()
+	public function getColumn() : array
 	{
 		return $this->column;
 	}
 
 	/**
+	 * @param mixed $condition
+	 *
+	 * @return void
+	 */
+	public function setCondition($condition)
+	{
+		$this->condition = (array) $condition;
+	}
+
+	/**
 	 * @return array
 	 */
-	public function getCondition()
+	public function getCondition() : array
 	{
 		return $this->condition;
 	}
 
 	/**
-	 * @return array
+	 * @param mixed $value
+	 *
+	 * @return void
 	 */
-	public function getValue()
+	public function setValue($value)
 	{
-		return $this->value;
+		$this->value = (array) $value;
 	}
 
 	/**
 	 * @return array
 	 */
-	public function getValueForColumn()
+	public function getValue() : array
+	{
+		return $this->value;
+	}
+
+	/**
+	 * @param callable $callback
+	 *
+	 * @return void
+	 */
+	public function setCallback(callable $callback)
+	{
+		$this->callback = $callback;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getValueForColumn() : array
 	{
 		if (count($this->condition) > 1) {
 			return $this->value;
 		}
 
-		$values = array();
+		$values = [];
+
 		foreach ($this->getColumn() as $column) {
 			if (!self::isOperator($column)) {
 				foreach ($this->getValue() as $val) {
@@ -167,9 +182,10 @@ class Condition extends Nette\Object
 	/**
 	 * @return array
 	 */
-	public function getColumnWithoutOperator()
+	public function getColumnWithoutOperator() : array
 	{
-		$columns = array();
+		$columns = [];
+
 		foreach ($this->column as $column) {
 			if (!self::isOperator($column)) {
 				$columns[] = $column;
@@ -180,14 +196,12 @@ class Condition extends Nette\Object
 	}
 
 	/**
-	 * @return callable
+	 * @return callable|NULL
 	 */
 	public function getCallback()
 	{
 		return $this->callback;
 	}
-
-	/**********************************************************************************************/
 
 	/**
 	 * Returns TRUE if $item is Condition:OPERATOR_AND or Condition:OPERATOR_OR else FALSE
@@ -196,9 +210,9 @@ class Condition extends Nette\Object
 	 *
 	 * @return bool
 	 */
-	public static function isOperator($item)
+	public static function isOperator($item) : bool
 	{
-		return in_array(strtoupper($item), array(self::OPERATOR_AND, self::OPERATOR_OR));
+		return in_array(strtoupper($item), [self::OPERATOR_AND, self::OPERATOR_OR], TRUE);
 	}
 
 	/**
@@ -206,17 +220,17 @@ class Condition extends Nette\Object
 	 * @param string $condition
 	 * @param mixed $value
 	 *
-	 * @return $this
+	 * @return Condition
 	 */
-	public static function setup($column, $condition, $value)
+	public static function setup($column, string $condition, $value) : Condition
 	{
 		return new self($column, $condition, $value);
 	}
 
 	/**
-	 * @return $this
+	 * @return Condition
 	 */
-	public static function setupEmpty()
+	public static function setupEmpty() : Condition
 	{
 		return new self(NULL, '0 = 1');
 	}
@@ -224,14 +238,14 @@ class Condition extends Nette\Object
 	/**
 	 * @param array $condition
 	 *
-	 * @return $this
+	 * @return Condition
 	 *
 	 * @throws Exceptions\InvalidArgumentException
 	 */
-	public static function setupFromArray(array $condition)
+	public static function setupFromArray(array $condition) : Condition
 	{
 		if (count($condition) !== 3) {
-			throw new Exceptions\InvalidArgumentException("Condition array must contain 3 items.");
+			throw new Exceptions\InvalidArgumentException('Condition array must contain 3 items.');
 		}
 
 		return new self($condition[0], $condition[1], $condition[2]);
@@ -241,18 +255,16 @@ class Condition extends Nette\Object
 	 * @param callable $callback
 	 * @param string $value
 	 *
-	 * @return $this
+	 * @return Condition
 	 */
-	public static function setupFromCallback($callback, $value)
+	public static function setupFromCallback($callback, $value) : Condition
 	{
 		$self = new self(NULL, NULL);
-		$self->value = $value;
-		$self->callback = $callback;
+		$self->setValue($value);
+		$self->setCallback($callback);
 
 		return $self;
 	}
-
-	/**********************************************************************************************/
 
 	/**
 	 * @param string $prefix - column prefix
@@ -260,12 +272,10 @@ class Condition extends Nette\Object
 	 * @param bool $brackets - add brackets when multiple where
 	 *
 	 * @return array
-	 *
-	 * @throws Exceptions\InvalidArgumentException
 	 */
-	public function __toArray($prefix = NULL, $suffix = NULL, $brackets = TRUE)
+	public function __toArray($prefix = NULL, $suffix = NULL, $brackets = TRUE) : array
 	{
-		$condition = array();
+		$condition = [];
 		$addBrackets = $brackets && count($this->column) > 1;
 
 		if ($addBrackets) {
@@ -273,6 +283,7 @@ class Condition extends Nette\Object
 		}
 
 		$i = 0;
+
 		foreach ($this->column as $column) {
 			if (self::isOperator($column)) {
 				$operator = strtoupper($column);
@@ -291,7 +302,7 @@ class Condition extends Nette\Object
 		}
 
 		return $condition
-			? array_values(array_merge(array(implode('', $condition)), $this->getValueForColumn()))
+			? array_values(array_merge([implode('', $condition)], $this->getValueForColumn()))
 			: $this->condition;
 	}
 }

@@ -27,20 +27,18 @@ use IPub\DataTables\Components;
  * @subpackage     Filters
  *
  * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
- *
- * @property-read Components\Control $parent
  */
 class Text extends Filter
 {
 	/**
 	 * @var string
 	 */
-	const CONDITION = 'LIKE ?';
+	private $condition = 'LIKE ?';
 
 	/**
 	 * @var string
 	 */
-	const FORMAT_VALUE = '%%value%';
+	private $formatValue = '%%value%';
 
 	/**
 	 * @var bool
@@ -71,8 +69,8 @@ class Text extends Filter
 	{
 		parent::__construct($parent, $name, $label);
 
-		$this->setFormatValue(self::FORMAT_VALUE);
-		$this->setCondition(self::CONDITION);
+		$this->setFormatValue($this->formatValue);
+		$this->setCondition($this->condition);
 	}
 
 	/**
@@ -91,14 +89,12 @@ class Text extends Filter
 		$prototype->setAttribute('autocomplete', 'off');
 		$prototype->appendAttribute('class', 'suggest');
 
-		$filter = $this;
-
-		$this->parent->onRender[] = function () use ($prototype, $filter) {
+		$this->parent->onRender[] = function () use ($prototype) {
 			$replacement = '-query-';
 
 			$prototype->data('js-data-grid-suggest-replacement', $replacement);
-			$prototype->data('js-data-grid-suggest-limit', $filter->suggestionLimit);
-			$prototype->data('js-data-grid-suggest-handler', $filter->link('suggest!', [
+			$prototype->data('js-data-grid-suggest-limit', $this->suggestionLimit);
+			$prototype->data('js-data-grid-suggest-handler', $this->link('suggest!', [
 				'query' => $replacement,
 			]));
 		};
@@ -126,14 +122,6 @@ class Text extends Filter
 	public function setSuggestionCallback(callable $callback)
 	{
 		$this->suggestionCallback = $callback;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getSuggestionLimit()
-	{
-		return $this->suggestionLimit;
 	}
 
 	/**
@@ -196,9 +184,9 @@ class Text extends Filter
 	}
 
 	/**
-	 * @return Forms\Controls\TextInput|Forms\Controls\BaseControl
+	 * @return Forms\Controls\TextInput|Forms\IControl
 	 */
-	protected function getFormControl() : Forms\Controls\BaseControl
+	protected function getFormControl() : Forms\IControl
 	{
 		$control = new Forms\Controls\TextInput($this->getLabel());
 		$control->getControlPrototype()->appendAttribute('class', 'js-grid-filter-text');

@@ -2,49 +2,53 @@
 /**
  * Number.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	Filters
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ * @since          1.0.0
  *
- * @date		13.11.14
+ * @date           13.11.14
  */
+
+declare(strict_types=1);
 
 namespace IPub\DataTables\Filters;
 
-use Nette;
 use Nette\Forms;
 
+use IPub\DataTables\Components;
+
 /**
- * @author      Petr Bugyík
+ * DataTables column number filter control
+ *
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ *
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
  */
 class Number extends Text
 {
 	/**
 	 * @var string
 	 */
-	protected $condition;
+	private $condition = '= ?';
 
 	/**
-	 * @return Forms\Controls\TextInput
+	 * @param Components\Control $parent
+	 * @param string $name
+	 * @param string $label
 	 */
-	protected function getFormControl()
+	public function __construct(Components\Control $parent, string $name, string $label)
 	{
-		$control = parent::getFormControl();
-		$control->getControlPrototype()->title = sprintf($this->translate('DataTables.HintNumber'), rand(1, 9));
-		$control->getControlPrototype()->class[] = 'number';
+		parent::__construct($parent, $name, $label);
 
-		return $control;
+		$this->setCondition($this->condition);
 	}
 
 	/**
-	 * @param string $value
-	 *
-	 * @return Condition
-	 *
-	 * @throws \Exception
+	 * {@inheritdoc}
 	 */
 	public function __getCondition($value)
 	{
@@ -64,5 +68,17 @@ class Number extends Text
 		}
 
 		return $condition;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	protected function getFormControl() : Forms\IControl
+	{
+		$control = parent::getFormControl();
+		$control->getControlPrototype()->setAttribute('title', '');
+		$control->getControlPrototype()->appendAttribute('class', 'js-grid-filter-number');
+
+		return $control;
 	}
 }

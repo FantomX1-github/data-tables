@@ -92,6 +92,8 @@ abstract class Column extends Settings implements IColumn
 
 		// Created column label
 		$this->label = $label;
+
+		$this->setColumn($name);
 	}
 
 	/**
@@ -161,7 +163,7 @@ abstract class Column extends Settings implements IColumn
 			$value = call_user_func($this->renderer, $row);
 
 		} else {
-			$value = $this->getColumnValue($row);
+			$value = $this->getGrid()->getModel()->getColumnValue($row, $this->getColumn());
 		}
 
 		echo $value;
@@ -178,13 +180,13 @@ abstract class Column extends Settings implements IColumn
 	/**
 	 * {@inheritdoc}
 	 */
-	public function renderCell($row)
+	public function renderCell($row) : array
 	{
 		if (is_callable($this->cellRenderer)) {
 			return call_user_func($this->cellRenderer, $row);
 		}
 
-		return NULL;
+		return [];
 	}
 
 	/**
@@ -276,7 +278,7 @@ abstract class Column extends Settings implements IColumn
 	 */
 	public function addFilterCustom(Forms\IControl $formControl) : Filters\Custom
 	{
-		$this->filter = new Filters\Custom($this->getGrid(), $this->name, NULL, $formControl);
+		$this->filter = new Filters\Custom($this->getGrid(), $this->name, $formControl);
 
 		return $this->filter;
 	}
@@ -284,13 +286,13 @@ abstract class Column extends Settings implements IColumn
 	/**
 	 * {@inheritdoc}
 	 */
-	public function setTextEditable(bool $textarea = FALSE, int $cols = NULL, int $rows = NULL)
+	public function setTextEditable(bool $asTextarea = FALSE, int $cols = NULL, int $rows = NULL)
 	{
 		if ($this->editable) {
 			throw new Exceptions\DuplicateEditableColumnException(sprintf('Column %s is already editable.', $this->name));
 		}
 
-		if ($textarea) {
+		if ($asTextarea) {
 			/** @var Forms\Controls\TextArea $input */
 			$input = $this->getRowForm()->addTextArea($this->name, NULL, $cols, $rows);
 
@@ -307,14 +309,20 @@ abstract class Column extends Settings implements IColumn
 	/**
 	 * {@inheritdoc}
 	 */
-	public function setSelectEditable(array $values, string $prompt = NULL)
+	public function setSelectEditable(array $values, string $prompt = NULL, bool $multiSelect = FALSE)
 	{
 		if ($this->editable) {
 			throw new Exceptions\DuplicateEditableColumnException(sprintf('Column %s is already editable.', $this->name));
 		}
 
-		/** @var Forms\Controls\SelectBox $input */
-		$input = $this->getRowForm()->addSelect($this->name, NULL, $values);
+		if ($multiSelect === TRUE) {
+			/** @var Forms\Controls\MultiSelectBox $input */
+			$input = $this->getRowForm()->addMultiSelect($this->name, NULL, $values);
+
+		} else {
+			/** @var Forms\Controls\SelectBox $input */
+			$input = $this->getRowForm()->addSelect($this->name, NULL, $values);
+		}
 
 		$input->getControlPrototype()->appendAttribute('class', 'js-data-grid-editable');
 
@@ -385,33 +393,16 @@ abstract class Column extends Settings implements IColumn
 	 */
 	public function getCellPrototype($row) : Utils\Html
 	{
-		if (!isset($this->cellPrototypes[$row->{$this->getGrid()->getPrimaryKey()}])) {
-			$element = $this->cellPrototypes[$row->{$this->getGrid()->getPrimaryKey()}] = Utils\Html::el($this->getCellType());
+		if (!isset($this->cellPrototypes[$this->getGrid()->getModel()->getRowIdentifier($row)])) {
+			$element = $this->cellPrototypes[$this->getGrid()->getModel()->getRowIdentifier($row)] = Utils\Html::el($this->getCellType());
 			$element->appendAttribute('class', 'column js-data-grid-cell-' . $this->getName() . ' ' . $this->getClassName());
 
 			if ($this->hasCellRenderer()) {
-				$this->cellPrototypes[$row->{$this->getGrid()->getPrimaryKey()}]->addAttributes($this->renderCell($row));
+				$this->cellPrototypes[$this->getGrid()->getModel()->getRowIdentifier($row)]->addAttributes($this->renderCell($row));
 			}
 		}
 
-		return $this->cellPrototypes[$row->{$this->getGrid()->getPrimaryKey()}];
-	}
-
-	/**
-	 * @param mixed $row
-	 *
-	 * @return mixed|NULL
-	 */
-	public function getColumnValue($row)
-	{
-		if (is_array($row)) {
-			return isset($row[$this->getName()]) ? $row[$this->getName()] : NULL;
-
-		} elseif (is_object($row)) {
-			return method_exists($row, 'get' . ucfirst($this->getName())) ? call_user_func([$row, 'get' . ucfirst($this->getName())]) : NULL;
-		}
-
-		return NULL;
+		return $this->cellPrototypes[$this->getGrid()->getModel()->getRowIdentifier($row)];
 	}
 
 	/**
@@ -423,6 +414,16 @@ abstract class Column extends Settings implements IColumn
 		$gridControl = $this->lookup(Components\Control::class);
 
 		return $gridControl;
+	}
+
+	/**
+	 * @return UI\Form
+	 */
+	protected function getRowForm() : UI\Form
+	{
+		$gridControl = $this->getGrid();
+
+		return $gridControl['gridForm']['rowForm'];
 	}
 
 	/**
@@ -445,15 +446,5 @@ abstract class Column extends Settings implements IColumn
 		}
 
 		$container->addComponent($this, $name, $insertBefore);
-	}
-
-	/**
-	 * @return UI\Form
-	 */
-	private function getRowForm() : UI\Form
-	{
-		$gridControl = $this->getGrid();
-
-		return $gridControl['dataGridForm']['rowForm'];
 	}
 }

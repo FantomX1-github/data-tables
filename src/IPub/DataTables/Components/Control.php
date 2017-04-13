@@ -16,16 +16,14 @@ declare(strict_types=1);
 
 namespace IPub\DataTables\Components;
 
-use Nette;
 use Nette\Application\UI;
+use Nette\Bridges;
 use Nette\ComponentModel;
 use Nette\Forms;
 use Nette\Http;
 use Nette\Utils;
 use Nette\Localization;
 
-use IPub;
-use IPub\DataTables;
 use IPub\DataTables\Columns;
 use IPub\DataTables\Components;
 use IPub\DataTables\DataSources;
@@ -43,10 +41,13 @@ use IPub\DataTables\StateSavers;
  *
  * @method onBeforeConfigure(UI\Control $component)
  * @method onAfterConfigure(UI\Control $component)
+ *
+ * @property-read Bridges\ApplicationLatte\Template $template
  */
 class Control extends Settings
 {
 	use Components\TColumns;
+	use Components\TFilters;
 
 	/**
 	 * @var \Closure[]
@@ -59,29 +60,24 @@ class Control extends Settings
 	public $onAfterConfigure = [];
 
 	/**
-	 * @var DataSources\IDataSource
+	 * @var DataSources\IModel
 	 */
-	protected $model = NULL;
-
-	/**
-	 * @var string
-	 */
-	protected $primaryKey = 'id';
+	private $model = NULL;
 
 	/**
 	 * @var StateSavers\IStateSaver|NULL
 	 */
-	protected $stateSaver = NULL;
+	private $stateSaver = NULL;
 
 	/**
 	 * @var int|NULL
 	 */
-	protected $activeRowForm;
+	private $activeRowForm;
 
 	/**
 	 * @var array
 	 */
-	protected $defaultSort = [];
+	private $defaultSort = [];
 
 	/**
 	 * @var array
@@ -89,54 +85,34 @@ class Control extends Settings
 	public $sort = [];
 
 	/**
-	 * @var array
-	 */
-	protected $defaultFilter = [];
-
-	/**
-	 * @var array
-	 */
-	protected $filter = [];
-
-	/**
-	 * @var bool|NULL
-	 */
-	protected $hasColumns = NULL;
-
-	/**
-	 * @var bool
-	 */
-	protected $hasFilters;
-
-	/**
 	 * @var callback
 	 */
-	protected $rowFormCallback;
+	private $rowFormCallback;
 
 	/**
 	 * @var Localization\ITranslator
 	 */
-	protected $translator;
+	private $translator;
 
 	/**
 	 * @var Http\IRequest
 	 */
-	protected $httpRequest;
+	private $httpRequest;
 
 	/**
 	 * @var bool
 	 */
-	protected $ajax = TRUE;
+	private $ajax = TRUE;
 
 	/**
 	 * @var bool
 	 */
-	protected $fullRedraw = FALSE;
+	private $fullRedraw = FALSE;
 
 	/**
 	 * @var string|NULL
 	 */
-	protected $templateFile = NULL;
+	private $templateFile = NULL;
 
 	/**
 	 * @param Http\IRequest $httpRequest
@@ -192,16 +168,15 @@ class Control extends Settings
 		if ($this->hasGlobalButtons()) {
 			$actions = [];
 
-			/** @var ComponentModel\Container $globalButtons */
-			$globalButtons = $this->getComponent(Components\Actions\IButton::ID, FALSE);
-
-			if ($globalButtons !== NULL) {
-				foreach ($globalButtons->getComponents() as $name => $action) {
-					$actions[$name] = $action->getAction();
-				}
-
-				$this['dataGridForm'][Components\Actions\IButton::ID]['name']->setItems($actions);
+			foreach ($this->getGlobalButtons() as $name => $action) {
+				$actions[$name] = $action->getAction();
 			}
+
+			/** @var Forms\Container $globalButtonsContainer */
+			$globalButtonsContainer = $this['gridForm'][Components\Actions\IButton::ID];
+			/** @var Forms\Controls\SelectBox $actionSelect */
+			$actionSelect = $globalButtonsContainer['name'];
+			$actionSelect->setItems($actions);
 		}
 	}
 
@@ -226,19 +201,19 @@ class Control extends Settings
 
 		// Or are loaded in render process
 		} else {
-			$rows = $this->model->getData();
+			$rows = $this->getModel()->getRows();
 		}
 
 		// Add data to template
-		$this->template->results = $this->getDataCount();
-		$this->template->columns = $this->getColumns();
-		$this->template->columnsCount = $this->getColumnsCount();
-		$this->template->filters = $this->getFilters();
-		$this->template->primaryKey = $this->getPrimaryKey();
-		$this->template->rows = $rows;
-		$this->template->settings = $this->formatSettings();
-		$this->template->useServerSide = $this->hasEnabledServerSide();
-		$this->template->useAjaxSource = $this->hasEnabledAjaxSource();
+		$this->template->add('results', $this->getModel()->getCount());
+		$this->template->add('columns', $this->getColumns());
+		$this->template->add('columnsCount', $this->getColumnsCount());
+		$this->template->add('filters', $this->getFilters());
+		$this->template->add('primaryKey', $this->getModel()->getPrimaryKey());
+		$this->template->add('rows', $rows);
+		$this->template->add('settings', $this->formatSettings());
+		$this->template->add('useServerSide', $this->hasEnabledServerSide());
+		$this->template->add('useAjaxSource', $this->hasEnabledAjaxSource());
 
 		// Check if translator is available
 		if ($this->getTranslator() instanceof Localization\ITranslator) {
@@ -263,28 +238,6 @@ class Control extends Settings
 
 		// Render component template
 		$this->template->render();
-	}
-
-	/**
-	 * Set data source primary key
-	 *
-	 * @param string $primaryKey
-	 *
-	 * @return void
-	 */
-	public function setPrimaryKey(string $primaryKey)
-	{
-		$this->primaryKey = $primaryKey;
-	}
-
-	/**
-	 * Get data source primary key
-	 *
-	 * @return string
-	 */
-	public function getPrimaryKey() : string
-	{
-		return $this->primaryKey;
 	}
 
 	/**
@@ -335,39 +288,6 @@ class Control extends Settings
 		$this->fullRedraw = FALSE;
 	}
 
-
-
-
-	/**
-	 * @param string $name
-	 *
-	 * @return Nette\Forms\IControl
-	 *
-	 * @throws Exceptions\UnknownColumnException
-	 */
-	public function getColumnInput(string $name) : Nette\Forms\IControl
-	{
-		if (!$this->columnExists($name)) {
-			throw new Exceptions\UnknownColumnException(sprintf('Column "%s" doesn\'t exists.', $name ));
-		}
-
-		return $this['dataGridForm'][Components\Buttons\IButton::ID][$name];
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function isEditable() : bool
-	{
-		foreach ($this->getColumns() as $column) {
-			if ($column->isEditable()) {
-				return TRUE;
-			}
-		}
-
-		return FALSE;
-	}
-
 	/**
 	 * @return bool
 	 */
@@ -376,7 +296,7 @@ class Control extends Settings
 		/** @var ComponentModel\Container $buttonsContainer */
 		$buttonsContainer = $this->getComponent(Components\Buttons\IButton::ID, FALSE);
 
-		return ($buttonsContainer !== NULL && count($buttonsContainer->getComponents()) > 1) ? TRUE : FALSE;
+		return ($buttonsContainer !== NULL && count($buttonsContainer->getComponents()) > 0) ? TRUE : FALSE;
 	}
 
 	/**
@@ -390,7 +310,7 @@ class Control extends Settings
 	public function addGlobalButton(string $name, string $label = NULL) : Components\Actions\Button
 	{
 		/** @var ComponentModel\Container $buttonsContainer */
-		$buttonsContainer = $this->getComponent(Components\Buttons\IButton::ID, FALSE);
+		$buttonsContainer = $this->getComponent(Components\Actions\IButton::ID, FALSE);
 
 		if ($buttonsContainer !== NULL && $buttonsContainer->getComponent($name, FALSE)) {
 			throw new Exceptions\DuplicateGlobalButtonException(sprintf('Global button "%s" already exists.', $name));
@@ -405,9 +325,23 @@ class Control extends Settings
 	public function getGlobalButtons() : array
 	{
 		/** @var ComponentModel\Container $buttonsContainer */
-		$buttonsContainer = $this->getComponent(Components\Buttons\IButton::ID, FALSE);
+		$buttonsContainer = $this->getComponent(Components\Actions\IButton::ID, FALSE);
 
 		return $buttonsContainer !== NULL ? $buttonsContainer->getComponents()->getArrayCopy() : [];
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getGlobalButton(string $name) : Components\Actions\IButton
+	{
+		/** @var ComponentModel\Container $buttonsContainer */
+		$buttonsContainer = $this->getComponent(Components\Actions\IButton::ID);
+
+		/** @var Components\Actions\IButton $globalButton */
+		$globalButton = $buttonsContainer->getComponent($name);
+
+		return $globalButton;
 	}
 
 	/**
@@ -416,7 +350,7 @@ class Control extends Settings
 	public function hasGlobalButtons() : bool
 	{
 		/** @var ComponentModel\Container $buttonsContainer */
-		$buttonsContainer = $this->getComponent(Components\Buttons\IButton::ID, FALSE);
+		$buttonsContainer = $this->getComponent(Components\Actions\IButton::ID, FALSE);
 
 		return ($buttonsContainer !== NULL && count($buttonsContainer->getComponents()) >= 1) ? TRUE : FALSE;
 	}
@@ -429,7 +363,7 @@ class Control extends Settings
 	public function createRowCheckbox(string $id) : Utils\Html
 	{
 		/** @var Forms\Controls\CheckboxList $checkBoxList */
-		$checkBoxList = $this['dataGridForm']['rows'];
+		$checkBoxList = $this['gridForm']['rows'];
 
 		$items = $checkBoxList->getItems();
 		$items = array_merge($items, [$id]);
@@ -452,87 +386,7 @@ class Control extends Settings
 	 */
 	public function hasActiveRowForm() : bool
 	{
-		return $this->activeRowForm !== NULL ? TRUE : FALSE;
-	}
-
-	/**
-	 * Sets default filtering
-	 *
-	 * @param array $filter
-	 *
-	 * @return void
-	 */
-	public function setDefaultFilter(array $filter)
-	{
-		$this->defaultFilter = array_merge($this->defaultFilter, $filter);
-	}
-
-	/**
-	 * Get all filters components
-	 *
-	 * @return array
-	 */
-	public function getFilters() : array
-	{
-		/** @var ComponentModel\Container $filtersContainer */
-		$filtersContainer = $this->getComponent(Filters\Filter::ID, FALSE);
-
-		return $filtersContainer !== NULL && $this->hasFilters()
-			? $filtersContainer->getComponents()->getArrayCopy()
-			: [];
-	}
-
-	/**
-	 * Returns filter component by its name
-	 *
-	 * @param string $name
-	 * @param bool $need
-	 *
-	 * @return Filters\IFilter|NULL
-	 */
-	public function getFilter(string $name, bool $need = TRUE)
-	{
-		/** @var ComponentModel\Container $filtersContainer */
-		$filtersContainer = $this->getComponent(Filters\Filter::ID, FALSE);
-
-		return $filtersContainer !== NULL && $this->hasFilters()
-			? $filtersContainer->getComponent($name, $need)
-			: NULL;
-	}
-
-	/**
-	 * Returns actual filter values
-	 *
-	 * @param string $key
-	 *
-	 * @return mixed
-	 */
-	public function getActualFilter(string $key = NULL)
-	{
-		$filter = $this->filter ? $this->filter : $this->defaultFilter;
-
-		return $key && isset($filter[$key]) ? $filter[$key] : $filter;
-	}
-
-	/**
-	 * Check if filter is registered
-	 *
-	 * @param bool $useCache
-	 *
-	 * @return bool
-	 */
-	public function hasFilters(bool $useCache = TRUE) : bool
-	{
-		$hasFilters = $this->hasFilters;
-
-		if ($hasFilters === NULL || $useCache === FALSE) {
-			$filtersContainer = $this->getComponent(Filters\Filter::ID, FALSE);
-			$hasFilters = $filtersContainer !== NULL && count($filtersContainer->getComponents()) > 0;
-
-			$this->hasFilters = $useCache ? $hasFilters : NULL;
-		}
-
-		return $hasFilters;
+		return $this->activeRowForm !== NULL;
 	}
 
 	/**
@@ -575,24 +429,39 @@ class Control extends Settings
 	 * Sets a model that implements the interface DataTables\DataSources\IDataSource or data-source object
 	 *
 	 * @param mixed $model
+	 * @param string|NULL $primaryKey
 	 * @param bool $forceWrapper
 	 *
 	 * @return void
-	 *
-	 * @throws Exceptions\InvalidArgumentException
 	 */
-	public function setModel($model, bool $forceWrapper = FALSE)
+	public function setModel($model, string $primaryKey = NULL, bool $forceWrapper = FALSE)
 	{
-		$this->model = $model instanceof DataSources\IDataSource && $forceWrapper === FALSE
-			? $model
-			: new DataSources\Model($model);
+		$forceWrapper = is_bool($primaryKey) ? $primaryKey : $forceWrapper;
+
+		if ($model instanceof DataSources\IDataSource && $forceWrapper === FALSE) {
+			$this->model = $model;
+
+		} else {
+			if ($primaryKey === NULL) {
+				throw new Exceptions\InvalidArgumentException('Primary key for data source is missing');
+			}
+
+			$this->model = new DataSources\Model($model, $primaryKey);
+		}
 	}
 
 	/**
-	 * @return DataSources\IDataSource|NULL
+	 * @param bool $needed
+	 *
+	 * @return DataSources\IModel|NULL
 	 */
-	public function getModel()
+	public function getModel(bool $needed = TRUE)
 	{
+		// Check if data source is set
+		if ($this->model === NULL && $needed) {
+			throw new Exceptions\NoDataSourceException('Data source model not set yet, please use method \$grid->setModel().');
+		}
+
 		return $this->model;
 	}
 
@@ -607,13 +476,8 @@ class Control extends Settings
 	 */
 	public function handleGetData()
 	{
-		// Check if data source is set
-		if ($this->model === NULL) {
-			throw new Exceptions\NoDataSourceException('Data source model not set yet, please use method \$grid->setModel().');
-		}
-
 		// Get total rows count
-		$filteredTotal = $total = $this->getDataCount();
+		$filteredTotal = $total = $this->getModel()->getCount();
 
 		// Init output collection
 		$data = new Utils\ArrayHash;
@@ -631,8 +495,8 @@ class Control extends Settings
 		if ($this->hasEnabledServerSide()) {
 			// DataTables params
 			$columns = $this->httpRequest->getQuery('columns', []);					// Columns from DataTables
-			$displayStart = $this->httpRequest->getQuery('start', 0);		// Limit start
-			$displayLength = $this->httpRequest->getQuery('length', 20);		// Limit count
+			$displayStart = (int) $this->httpRequest->getQuery('start', 0);		// Limit start
+			$displayLength = (int) $this->httpRequest->getQuery('length', 20);		// Limit count
 			$ordering = $this->httpRequest->getQuery('order', []);					// Data ordering
 			$search = $this->httpRequest->getQuery('search', []);					// Global data search
 
@@ -683,14 +547,14 @@ class Control extends Settings
 			$this->applyFiltering();
 
 			// Update filtered records count
-			$data->recordsFiltered = $this->getDataCount();
+			$data->recordsFiltered = $this->getModel()->getCount();
 
 			// Set limits
-			$this->model->limit($displayStart, $displayLength);
+			$this->getModel()->limit($displayStart, $displayLength);
 		}
 
 		// Format rows data to DataTables format
-		$data->data = $this->applyRowFormatting($this->model->getData());
+		$data->data = $this->applyRowFormatting($this->getModel()->getRows());
 
 		// Send formatted data to output
 		$this->getPresenter()->sendJson($data);
@@ -709,7 +573,7 @@ class Control extends Settings
 			$records = [];
 
 			foreach ($rows as $row) {
-				$records[$this->getRowIdentifier($row)] = $this->model->getRow($this->getRowIdentifier($row));
+				$records[$this->getModel()->getRowIdentifier($row)] = $this->getModel()->getRow($this->getModel()->getRowIdentifier($row));
 			}
 
 			// Validate back all data grid snippets
@@ -725,23 +589,6 @@ class Control extends Settings
 			// ...do normal redirect
 			$this->redirect('this');
 		}
-	}
-
-	/**
-	 * @return int
-	 *
-	 * @throws Exceptions\NoDataSourceException
-	 */
-	public function getDataCount() : int
-	{
-		// Check if data source is set
-		if ($this->model === NULL) {
-			throw new Exceptions\NoDataSourceException('Data source model not set yet, please use method \$grid->setModel().');
-		}
-
-		$count = $this->model->getCount();
-
-		return $count;
 	}
 
 	/**
@@ -795,33 +642,37 @@ class Control extends Settings
 	/**
 	 * @return UI\Form
 	 */
-	protected function createComponentDataGridForm() : UI\Form
+	protected function createComponentGridForm() : UI\Form
 	{
 		$form = new UI\Form;
 		// Data grid form is handled by post
 		$form->setMethod(UI\Form::POST);
 
-		if ($this->getTranslator()) {
+		if ($this->getTranslator() !== NULL) {
 			// Set translator from grid to form
 			$form->setTranslator($this->getTranslator());
 		}
 
-		$buttonsContainer = $form->addContainer(Components\Buttons\IButton::ID);
-		$buttonsContainer->addSubmit('send', 'Save')
+		/** @var Forms\Container $rowButtonsContainer */
+		$rowButtonsContainer = $form->addContainer(Components\Buttons\IButton::ID);
+		// Edit row submit button
+		$rowButtonsContainer->addSubmit('send', 'Save')
 			->getControlPrototype()
 				->appendAttribute('class', 'js-data-grid-editable');
 
-		$filtersContainer = $form->addContainer('filters');
+		/** @var Forms\Container $filtersContainer */
+		$filtersContainer = $form->addContainer(Filters\IFilter::ID);
 		$filtersContainer->addSubmit('send', 'Filter')
 			->setValidationScope(FALSE);
 		$filtersContainer->addText('fullGridSearch', 'Search:');
 
-		$globalActionsContainer = $form->addContainer(Components\Actions\IButton::ID);
-		$globalActionsContainer->addSelect('name', 'Marked:');
-		$globalActionsContainer->addSubmit('send', 'Confirm')
+		/** @var Forms\Container $globalButtonsContainer */
+		$globalButtonsContainer = $form->addContainer(Components\Actions\IButton::ID);
+		$globalButtonsContainer->addSelect('name', 'Marked:');
+		$globalButtonsContainer->addSubmit('send', 'Confirm')
 			->setValidationScope(FALSE)
 			->getControlPrototype()
-				->addData('select', $globalActionsContainer['name']->getControl()->name);
+				->data('select', $globalButtonsContainer['name']->getName());
 
 		$form->addCheckboxList('rows')
 			->getControlPrototype()
@@ -829,6 +680,8 @@ class Control extends Settings
 					'class'   => 'js-data-grid-action-checkbox',
 					'checked' => FALSE,
 				]);
+
+		$form->addContainer('rowForm');
 
 		$form->onSuccess[] = function (UI\Form $form, $values) {
 			$this->processGridForm($form, $values);
@@ -851,7 +704,7 @@ class Control extends Settings
 			$rows = [];
 
 			foreach ($this->httpRequest->getPost('rows') as $id) {
-				if ($row = $this->model->getRow($id)) {
+				if ($row = $this->getModel()->getRow($id)) {
 					$rows[] = $row;
 				}
 			}
@@ -882,30 +735,37 @@ class Control extends Settings
 
 		// Check for custom action submitting
 		if ($this->hasGlobalButtons()) {
+			/** @var Forms\Container $globalButtonsContainer */
+			$globalButtonsFormContainer = $form[Components\Actions\IButton::ID];
+
 			try {
 				// Check all action buttons...
-				foreach ($this->getComponent(Components\Actions\IButton::ID, FALSE)->getComponents() as $action) {
+				foreach ($this->getGlobalButtons() as $globalButton) {
+					/** @var Forms\Controls\SubmitButton $globalFormButton */
+					$globalFormButton = $globalButtonsFormContainer[$globalButton->getName()];
+
 					// ...and if form was submitted by this button...
-					if ($form[Components\Actions\IButton::ID][$action->getName()]->isSubmittedBy()) {
+					if ($globalFormButton->isSubmittedBy()) {
 						// ...call button callback
-						call_user_func($action->getCallback(), $rows);
+						call_user_func($globalButton->getCallback(), $rows);
 
 						// Redraw updated rows
 						$this->redrawRows($rows);
 					}
 				}
 
+				/** @var Forms\Controls\SubmitButton $globalFormSubmitButton */
+				$globalFormSubmitButton = $globalButtonsFormContainer['send'];
+
 				// Form is submitted by global action submit button
-				if ($form[Components\Actions\IButton::ID]['send']->isSubmittedBy()) {
-					if ($action = $this->getComponent(Components\Actions\IButton::ID, FALSE)->getComponent($values[Components\Actions\IButton::ID]['name'], FALSE)) {
-						call_user_func($action->getCallback(), $rows);
+				if ($globalFormSubmitButton->isSubmittedBy()) {
+					/** @var Components\Actions\IButton $globalButton */
+					$globalButton = $this->getGlobalButton($values[Components\Actions\IButton::ID]['name']);
 
-						// Redraw updated rows
-						$this->redrawRows($rows);
+					call_user_func($globalButton->getCallback(), $rows);
 
-					} else {
-						throw new Exceptions\UnknownActionException('Unknown action submitted.');
-					}
+					// Redraw updated rows
+					$this->redrawRows($rows);
 				}
 
 			// Action does not exists
@@ -952,79 +812,48 @@ class Control extends Settings
 	}
 
 	/**
-	 * Apply column filtering to the model
-	 *
-	 * @return void
-	 */
-	protected function applyFiltering()
-	{
-		$conditions = [];
-
-		if ($this->getActualFilter()) {
-			$this['dataGridForm']->setDefaults([Filters\Filter::ID => $this->getActualFilter()]);
-
-			foreach ($this->getActualFilter() as $column => $value) {
-				if ($component = $this->getFilter($column, FALSE)) {
-					if ($condition = $component->__getCondition($value)) {
-						$conditions[] = $condition;
-					}
-
-				} else {
-					trigger_error(sprintf('Filter with name "%s" does not exist.', $column), E_USER_NOTICE);
-				}
-			}
-		}
-
-		// Apply filter to the data model
-		$this->model->filter($conditions);
-	}
-
-	/**
 	 * Apply sorting to the model
 	 *
 	 * @return $this
 	 */
-	protected function applySorting()
+	private function applySorting()
 	{
 		$sort = [];
 
 		$this->sort = $this->sort ? $this->sort : $this->defaultSort;
 
 		foreach ($this->sort as $column => $dir) {
+			/** @var Columns\IColumn|NULL $component */
 			$component = $this->getColumn($column, FALSE);
 
 			if ($component === NULL) {
 				if (!isset($this->defaultSort[$column])) {
-					trigger_error(sprintf('Column with name "%s" does not exist.', $column), E_USER_NOTICE);
-					break;
+					throw new Exceptions\InvalidStateException(sprintf('Column with name "%s" does not exist.', $column));
 				}
 
 			} else if (!$component->isSortable()) {
 				if (isset($this->defaultSort[$column])) {
-					$component->setSortable();
+					$component->enableSortable();
 
 				} else {
-					trigger_error(sprintf('Column with name "%s" does not exist.', $column), E_USER_NOTICE);
-					break;
+					throw new Exceptions\InvalidStateException(sprintf('Column with name "%s" does not exist.', $column));
 				}
 			}
 
 			if (!in_array($dir, [Columns\IColumn::ORDER_ASC, Columns\IColumn::ORDER_DESC], TRUE)) {
-				if ($dir == '' && isset($this->defaultSort[$column])) {
+				if ($dir === '' && isset($this->defaultSort[$column])) {
 					unset($this->sort[$column]);
 					break;
 				}
 
-				trigger_error(sprintf('Dir "%s" is not allowed.', $dir), E_USER_NOTICE);
-
-				break;
+				throw new Exceptions\InvalidStateException(sprintf('Dir "%s" is not allowed.', $dir));
 			}
 
-			$sort[$component ? $component->getColumn() : $column] = $dir == Columns\IColumn::ORDER_ASC ? 'ASC' : 'DESC';
+			$sort[$component ? $component->getColumn() : $column] = $dir === Columns\IColumn::ORDER_ASC ? 'ASC' : 'DESC';
 		}
 
 		if ($sort) {
-			$this->model->sort($sort);
+			$this->getModel()->sort($sort);
 		}
 	}
 
@@ -1033,14 +862,14 @@ class Control extends Settings
 	 *
 	 * @return array
 	 */
-	protected function applyRowFormatting(array $records) : array
+	private function applyRowFormatting(array $records) : array
 	{
 		// Formatted collection
 		$collection = [];
 
 		// Process all data from data source
 		foreach ($records as $id => $record) {
-			if ($record == NULL) {
+			if ($record === NULL) {
 				$collection[$id] = NULL;
 
 				continue;
@@ -1048,34 +877,34 @@ class Control extends Settings
 
 			$row = new Utils\ArrayHash;
 
-			// DataGrid form default values
+			// Grid form default values
 			$defaults = [];
 
 			foreach ($this->getColumns() as $column) {
 				if ($column->isEditable()) {
-					$defaults[$column->getName()] = $record->{$column->getName()};
+					$defaults[$column->getName()] = $this->getModel()->getColumnValue($record, $column->getName());
 				}
 			}
 
 			// Store form default values from row
-			$this['dataGridForm'][Components\Buttons\IButton::ID]->setDefaults($defaults);
+			$this['gridForm']['rowForm']->setDefaults($defaults);
 
 			// Row identifier
-			$row->DT_RowId = 'row_' . $this->getRowIdentifier($record);
+			$row->DT_RowId = 'row_' . $this->getModel()->getRowIdentifier($record);
 
 			// Columns counter for non-server side processing
 			$counter = 0;
 
 			if ($this->hasGlobalButtons() || $this->hasRowButtons()) {
-				$row[$this->hasEnabledServerSide() ? 'rowSelection' : $counter] = (string) $this->createRowCheckbox($this->getRowIdentifier($record));
+				$row[$this->hasEnabledServerSide() ? 'rowSelection' : $counter] = (string) $this->createRowCheckbox($this->getModel()->getRowIdentifier($record));
 
 				$counter++;
 			}
 
 			foreach ($this->getColumns() as $index => $column) {
-				if ($this->isEditable() && $column->isEditable() && $this->activeRowForm == $this->getRowIdentifier($record)) {
+				if ($this->isEditable() && $column->isEditable() && $this->activeRowForm === $this->getModel()->getRowIdentifier($record)) {
 					// Add edit column data to output
-					$row[$this->hasEnabledServerSide() ? $column->getName() : $counter] = $this['dataGridForm'][Components\Buttons\IButton::ID][$column->getColumn()]->getControl();
+					$row[$this->hasEnabledServerSide() ? $column->getName() : $counter] = $this['gridForm']['rowForm'][$column->getColumn()]->getControl();
 
 				} else {
 					// Add column data to output
@@ -1143,20 +972,5 @@ class Control extends Settings
 		}
 
 		$this->templateFile = $templateFile;
-	}
-
-	/**
-	 * @param mixed $row
-	 *
-	 * @return string|NULL
-	 */
-	private function getRowIdentifier($row)
-	{
-		// Row identifier
-		if (method_exists($row, 'get' . ucfirst($this->getPrimaryKey()))) {
-			return (string) call_user_func([$row, 'get' . ucfirst($this->getPrimaryKey())]);
-		}
-
-		return NULL;
 	}
 }

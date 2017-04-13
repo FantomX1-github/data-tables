@@ -2,59 +2,73 @@
 /**
  * DateRange.php
  *
- * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
- * @package		iPublikuj:DataTables!
- * @subpackage	Filters
- * @since		5.0
+ * @copyright      More in license.md
+ * @license        http://www.ipublikuj.eu
+ * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ * @since          1.0.0
  *
- * @date		13.11.14
+ * @date           13.11.14
  */
+
+declare(strict_types=1);
 
 namespace IPub\DataTables\Filters;
 
-use Nette;
 use Nette\Forms;
 use Nette\Utils;
 
+use IPub\DataTables\Components;
+
 /**
- * @author      Petr Bugyík
+ * DataTables column date filter control
  *
- * @property string $mask
+ * @package        iPublikuj:DataTables!
+ * @subpackage     Filters
+ *
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
  */
 class DateRange extends Date
 {
 	/**
 	 * @var string
 	 */
-	protected $condition = 'BETWEEN ? AND ?';
+	private $condition = 'BETWEEN ? AND ?';
 
 	/**
 	 * @var string
 	 */
-	protected $mask = '/(.*)\s?-\s?(.*)/';
+	private $mask = '/(.*)\s?-\s?(.*)/';
 
 	/**
 	 * @var array
 	 */
-	protected $dateFormatOutput = array('Y-m-d', 'Y-m-d G:i:s');
+	private $dateFormatOutput = ['Y-m-d', 'Y-m-d G:i:s'];
+
+	/**
+	 * @param Components\Control $parent
+	 * @param string $name
+	 * @param string $label
+	 */
+	public function __construct(Components\Control $parent, string $name, string $label)
+	{
+		parent::__construct($parent, $name, $label);
+
+		$this->setCondition($this->condition);
+	}
 
 	/**
 	 * @param string $formatFrom
 	 * @param string $formatTo
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setDateFormatOutput($formatFrom, $formatTo = NULL)
+	public function setDateFormatOutput(string $formatFrom, string $formatTo = NULL)
 	{
-		$formatTo = $formatTo === NULL
-			? $formatFrom
-			: $formatTo;
+		$formatTo = $formatTo === NULL ? $formatFrom : $formatTo;
 
-		$this->dateFormatOutput = array($formatFrom, $formatTo);
-
-		return $this;
+		$this->dateFormatOutput = [$formatFrom, $formatTo];
 	}
 
 	/**
@@ -62,60 +76,33 @@ class DateRange extends Date
 	 *
 	 * @param string $mask
 	 *
-	 * @return $this
+	 * @return void
 	 */
-	public function setMask($mask)
+	public function setMask(string $mask)
 	{
 		$this->mask = $mask;
-
-		return $this;
 	}
 
 	/**
-	 * @return string
-	 */
-	public function getMask()
-	{
-		return $this->mask;
-	}
-
-	/**
-	 * @return Forms\Controls\TextInput
-	 */
-	protected function getFormControl()
-	{
-		$control = parent::getFormControl();
-
-		$prototype = $control->getControlPrototype();
-		array_pop($prototype->class); // Remove "date" class
-		$prototype->class[] = 'daterange';
-
-		return $control;
-	}
-
-	/**
-	 * @param string $value
-	 *
-	 * @return Condition
-	 *
-	 * @throws \Exception
+	 * {@inheritdoc}
 	 */
 	public function __getCondition($value)
 	{
-		if ($this->where === NULL && is_string($this->condition)) {
-
+		if ($this->getWhere() === NULL && is_string($this->getCondition())) {
 			list (, $from, $to) = Utils\Strings::match($value, $this->mask);
-			$from = \DateTime::createFromFormat($this->dateFormatInput, trim($from));
-			$to = \DateTime::createFromFormat($this->dateFormatInput, trim($to));
 
-			if ($to && !Utils\Strings::match($this->dateFormatInput, '/G|H/i')) { //input format haven't got hour option
+			$from = \DateTime::createFromFormat($this->getDateFormatInput(), trim($from));
+			$to = \DateTime::createFromFormat($this->getDateFormatInput(), trim($to));
+
+			// Input format haven't got hour option
+			if ($to && !Utils\Strings::match($this->getDateFormatInput(), '/G|H/i')) {
 				Utils\Strings::contains($this->dateFormatOutput[1], 'G') || Utils\Strings::contains($this->dateFormatOutput[1], 'H')
 					? $to->setTime(23, 59, 59)
 					: $to->setTime(11, 59, 59);
 			}
 
 			$values = $from && $to
-				? array($from->format($this->dateFormatOutput[0]), $to->format($this->dateFormatOutput[1]))
+				? [$from->format($this->dateFormatOutput[0]), $to->format($this->dateFormatOutput[1])]
 				: NULL;
 
 			return $values
@@ -124,5 +111,17 @@ class DateRange extends Date
 		}
 
 		return parent::__getCondition($value);
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	protected function getFormControl() : Forms\IControl
+	{
+		/** @var Forms\Controls\TextInput $control */
+		$control = parent::getFormControl();
+		$control->getControlPrototype()->appendAttribute('class', 'js-grid-filter-daterange');
+
+		return $control;
 	}
 }

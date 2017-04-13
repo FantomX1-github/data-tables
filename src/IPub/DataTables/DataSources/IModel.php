@@ -1,6 +1,6 @@
 <?php
 /**
- * IDataSource.php
+ * IModel.php
  *
  * @copyright      More in license.md
  * @license        http://www.ipublikuj.eu
@@ -9,7 +9,7 @@
  * @subpackage     DataSources
  * @since          1.0.0
  *
- * @date           18.10.14
+ * @date           13.04.17
  */
 
 declare(strict_types=1);
@@ -19,15 +19,20 @@ namespace IPub\DataTables\DataSources;
 use IPub\DataTables\Filters;
 
 /**
- * Data source interface
+ * Grid model interface
  *
  * @package        iPublikuj:DataTables!
  * @subpackage     DataSources
  *
  * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
  */
-interface IDataSource
+interface IModel
 {
+	/**
+	 * @return IDataSource
+	 */
+	function getDataSource() : IDataSource;
+
 	/**
 	 * @return string
 	 */
@@ -66,12 +71,12 @@ interface IDataSource
 	function getRowIdentifier($row);
 
 	/**
-	 * @param int $offset
-	 * @param int $limit
+	 * @param int $limitStart
+	 * @param int $length
 	 *
 	 * @return void
 	 */
-	function limit(int $offset, int $limit);
+	function limit(int $limitStart, int $length);
 
 	/**
 	 * @param Filters\Condition[] $conditions
@@ -86,13 +91,4 @@ interface IDataSource
 	 * @return void
 	 */
 	function sort(array $sorting);
-
-	/**
-	 * @param mixed $column
-	 * @param array $conditions
-	 * @param int $limit
-	 *
-	 * @return array
-	 */
-	function suggest($column, array $conditions, $limit);
 }

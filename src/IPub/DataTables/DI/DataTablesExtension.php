@@ -48,7 +48,7 @@ final class DataTablesExtension extends DI\CompilerExtension
 			->setClass(StateSavers\StateSaver::class);
 
 		// Define components
-		$builder->addDefinition($this->prefix('dataTables'))
+		$builder->addDefinition($this->prefix('grid'))
 			->setClass(Components\Control::class)
 			->setImplement(Components\IControl::class)
 			->addTag('cms.components');

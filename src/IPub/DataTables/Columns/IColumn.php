@@ -34,7 +34,7 @@ use IPub\DataTables\Filters;
 interface IColumn extends ISettings
 {
 	/**
-	 * Container name in datagrid
+	 * Container name in grid
 	 */
 	const ID = 'columns';
 
@@ -52,6 +52,11 @@ interface IColumn extends ISettings
 	const TYPE_TEXT = 'Text';
 	const TYPE_EMAIL = 'Email';
 	const TYPE_LINK = 'Link';
+
+	/**
+	 * @return string
+	 */
+	function getName();
 
 	/**
 	 * @param callback|string $label
@@ -106,9 +111,9 @@ interface IColumn extends ISettings
 	/**
 	 * @param mixed $row
 	 *
-	 * @return string|NULL
+	 * @return array
 	 */
-	function renderCell($row);
+	function renderCell($row) : array;
 
 	/**
 	 * @return bool
@@ -176,21 +181,22 @@ interface IColumn extends ISettings
 	function addFilterCustom(Forms\IControl $formControl) : Filters\Custom;
 
 	/**
-	 * @param bool $textarea
+	 * @param bool $asTextarea
 	 * @param int|NULL $cols
 	 * @param int|NULL $rows
 	 *
 	 * @return void
 	 */
-	function setTextEditable(bool $textarea = FALSE, int $cols = NULL, int $rows = NULL);
+	function setTextEditable(bool $asTextarea = FALSE, int $cols = NULL, int $rows = NULL);
 
 	/**
 	 * @param array $values
 	 * @param string|NULL $prompt
+	 * @param bool $multiselect
 	 *
 	 * @return void
 	 */
-	function setSelectEditable(array $values, string $prompt = NULL);
+	function setSelectEditable(array $values, string $prompt = NULL, bool $multiselect = FALSE);
 
 	/**
 	 * @return void
