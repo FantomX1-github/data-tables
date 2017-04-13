@@ -104,6 +104,11 @@ interface IButton
 	function getCallback();
 
 	/**
+	 * @return bool
+	 */
+	function hasCallback() : bool;
+
+	/**
 	 * Set button link
 	 *
 	 * @param callable|string $link

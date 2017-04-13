@@ -128,22 +128,6 @@ class Action extends Column
 	/**
 	 * {@inheritdoc}
 	 */
-	public function enableSortable()
-	{
-		throw new Exceptions\NotSupportedException('Sortable function is not allowed for action column.');
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function enableSearchable()
-	{
-		throw new Exceptions\NotSupportedException('Searchable function is not allowed for action column.');
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
 	public function setRenderer(callable $renderer)
 	{
 		throw new Exceptions\NotSupportedException('Setting renderer for action column is not supported. Use addButton instead.');

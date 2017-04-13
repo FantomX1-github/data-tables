@@ -26,6 +26,7 @@ use IPub;
 use IPub\DataTables;
 use IPub\DataTables\Components;
 use IPub\DataTables\Exceptions;
+use Tracy\Debugger;
 
 /**
  * Action column button control
@@ -100,13 +101,15 @@ class Button extends UI\Control implements IButton
 	 * @param string $name
 	 * @param string|callable $label
 	 */
-	public function __construct(Components\Control $parent, string $name, $label)
+	public function __construct(Components\Control $parent, string $name, $label = NULL)
 	{
 		parent::__construct();
 
 		$this->addComponentToGrid($parent, $name);
 
-		$this->setLabel($label);
+		if ($label !== NULL) {
+			$this->setLabel($label);
+		}
 
 		$buttonsFormContainer = $this->getButtonsFormContainer();
 		$buttonsFormContainer->addSubmit($name, $label)
@@ -185,11 +188,19 @@ class Button extends UI\Control implements IButton
 	 */
 	public function getCallback()
 	{
-		if ($this->callback === NULL) {
+		if (!$this->hasCallback()) {
 			throw new Exceptions\UnknownButtonCallbackException(sprintf('Button "%s" doesn\'t have callback.', $this->name));
 		}
 
 		return $this->callback;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function hasCallback() : bool
+	{
+		return $this->callback !== NULL;
 	}
 
 	/**
@@ -241,8 +252,8 @@ class Button extends UI\Control implements IButton
 	 */
 	public function render($data)
 	{
-		if ($this->getCallback() === NULL && $this->getLink($data) === NULL) {
-			throw new Exceptions\InvalidStateException('Row button have to have action callback or link defined.');
+		if (!$this->hasCallback() && $this->getLink($data) === NULL) {
+			throw new Exceptions\InvalidStateException(sprintf('Row button "%s" have to have action callback or link defined.', $this->name));
 		}
 
 		if ($this->getLink($data) !== NULL && $this->type === self::TYPE_BUTTON) {
@@ -275,7 +286,10 @@ class Button extends UI\Control implements IButton
 			}
 
 			$element->addAttributes($this->getAttributes($data));
-			$element->setText($this->getLabel($data));
+
+			if ($this->getLabel($data) !== NULL) {
+				$element->setText($this->getLabel($data));
+			}
 
 			if ($this->getLink($data) === NULL) {
 				$element->appendAttribute('class', 'js-data-grid-row-button');
@@ -338,9 +352,9 @@ class Button extends UI\Control implements IButton
 	 *
 	 * @param mixed $data
 	 *
-	 * @return string
+	 * @return string|NULL
 	 */
-	private function getLabel($data) : string
+	private function getLabel($data)
 	{
 		if (is_callable($this->label)) {
 			return (string) call_user_func($this->label, $data);
