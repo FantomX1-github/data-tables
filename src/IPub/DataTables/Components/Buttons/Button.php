@@ -275,7 +275,7 @@ class Button extends UI\Control implements IButton
 
 					// Set element attributes for JS
 					$element->data('action-name', $button->getHtmlName());
-					$element->data('action-value', $button->caption);
+					$element->data('action-value', $button->value);
 
 				} else {
 					$element->setAttribute('href', $this->getLink($data));
@@ -288,7 +288,14 @@ class Button extends UI\Control implements IButton
 			$element->addAttributes($this->getAttributes($data));
 
 			if ($this->getLabel($data) !== NULL) {
-				$element->setText($this->getLabel($data));
+				$label = $this->getLabel($data);
+
+				if ($label !== strip_tags($label)) {
+					$element->setHtml($label);
+
+				} else {
+					$element->setText($label);
+				}
 			}
 
 			if ($this->getLink($data) === NULL) {

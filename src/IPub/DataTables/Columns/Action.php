@@ -74,14 +74,14 @@ class Action extends Column
 
 	/**
 	 * @param string $name
-	 * @param string|NULL $label
+	 * @param string|callable|NULL $label
 	 *
 	 * @return Components\Buttons\IButton
 	 *
 	 * @throws Exceptions\InvalidArgumentException
 	 * @throws Exceptions\DuplicateRowButtonException
 	 */
-	public function addButton(string $name, string $label = NULL) : Components\Buttons\IButton
+	public function addButton(string $name, $label = NULL) : Components\Buttons\IButton
 	{
 		/** @var ComponentModel\Container $buttonsContainer */
 		$buttonsContainer = $this->getGrid()->getComponent(Components\Buttons\Button::ID);

@@ -171,16 +171,18 @@ class Doctrine implements IDataSource
 		$id = Uuid::fromString($id);
 		$id = $id->getBytes();
 
+		$aliases = $this->qb->getRootAliases();
+
 		if ($this->qb->getParameters()) {
 			return $this->qb
-				->andWhere($this->qb->expr()->eq($this->primaryKey, ':rowId'))
+				->andWhere($this->qb->expr()->eq($aliases[0], ':rowId'))
 				->setParameter('rowId', $id)
 				->getQuery()
 				->getOneOrNullResult();
 		}
 
 		return $this->qb
-			->where($this->qb->expr()->eq($this->primaryKey, ':rowId'))
+			->where($this->qb->expr()->eq($aliases[0], ':rowId'))
 			->setParameter('rowId', $id)
 			->getQuery()
 			->getOneOrNullResult();

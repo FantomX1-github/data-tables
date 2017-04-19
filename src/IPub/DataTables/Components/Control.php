@@ -684,7 +684,7 @@ class Control extends Settings
 		$form->addContainer('rowForm');
 
 		$form->onSuccess[] = function (UI\Form $form, $values) {
-			$this->processGridForm($form, $values);
+			$this->processGridForm($form, (array) $values);
 		};
 
 		return $form;
