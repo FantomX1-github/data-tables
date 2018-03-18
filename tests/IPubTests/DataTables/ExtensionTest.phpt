@@ -52,7 +52,7 @@ class ExtensionTest extends Tester\TestCase
 		$config = new Nette\Configurator();
 		$config->setTempDirectory(TEMP_DIR);
 
-		ConfirmationDialog\DI\ConfirmationDialogExtension::register($config);
+		DataTables\DI\DataTablesExtension::register($config);
 
 		return $config->createContainer();
 	}
