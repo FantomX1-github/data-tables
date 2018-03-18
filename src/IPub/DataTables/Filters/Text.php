@@ -3,8 +3,8 @@
  * Text.php
  *
  * @copyright      More in license.md
- * @license        http://www.ipublikuj.eu
- * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @license        https://www.ipublikuj.eu
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
  * @package        iPublikuj:DataTables!
  * @subpackage     Filters
  * @since          1.0.0
@@ -127,9 +127,11 @@ class Text extends Filter
 	/**
 	 * @param string $query - value from input
 	 *
+	 * @return void
+	 *
 	 * @throws \Exception
 	 */
-	public function handleSuggest(string $query)
+	public function handleSuggest(string $query) : void
 	{
 		$name = $this->getName();
 

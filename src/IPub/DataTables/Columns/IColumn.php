@@ -3,8 +3,8 @@
  * IColumn.php
  *
  * @copyright      More in license.md
- * @license        http://www.ipublikuj.eu
- * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @license        https://www.ipublikuj.eu
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
  * @package        iPublikuj:DataTables!
  * @subpackage     Columns
  * @since          1.0.0
@@ -19,7 +19,6 @@ namespace IPub\DataTables\Columns;
 use Nette\Forms;
 use Nette\Utils;
 
-use IPub;
 use IPub\DataTables;
 use IPub\DataTables\Filters;
 

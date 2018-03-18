@@ -1,8 +1,8 @@
 /**
  * @package     iPublikuj:DataTables!
  * @copyright   Copyright (C) 2014. All rights reserved.
- * @license     http://www.ipublikuj.eu
- * @author      Adam Kadlec (http://www.ipublikuj.eu)
+ * @license     https://www.ipublikuj.eu
+ * @author      Adam Kadlec (https://www.ipublikuj.eu)
  *
  * For the full copyright and license information, please view
  * the file LICENSE.md that was distributed with this source code.
@@ -11,7 +11,7 @@
 /**
  * Client-side script for iPublikuj:DataTables!
  *
- * @author      Adam Kadlec (http://www.ipublikuj.eu)
+ * @author      Adam Kadlec (https://www.ipublikuj.eu)
  * @package     iPublikuj:DataTables!
  * @version     1.0
  *

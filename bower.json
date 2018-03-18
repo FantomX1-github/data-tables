@@ -1,0 +1,29 @@
+{
+	"name": "ipub-confirmation-dialog",
+	"description": "DataTables datagrid implementation for Nette Framework",
+	"keywords": ["nette", "datagrid", "datatables", "tables", "tools", "ipub", "ipublikuj"],
+	"main": [
+		"public/css/jquery.dataTables.css",
+		"public/css/jquery.dataTables_themeroller.css",
+		"public/js/ipub.dataTables.js",
+		"public/js/jquery.dataTables.js"
+	],
+	"authors": [
+		{
+			"name"		: "iPublikuj:cms",
+			"email"		: "info@ipublikuj.eu",
+			"homepage"	: "https://www.ipublikuj.eu/"
+		}
+	],
+	"license": ["GPL-2.0", "GPL-3.0"],
+	"ignore": [
+		"docs",
+		"src",
+		"tests",
+		".gitignore",
+		".scrutinizer.yml",
+		".travis.composer.php",
+		".travis.yml",
+		"composer.json"
+	]
+}

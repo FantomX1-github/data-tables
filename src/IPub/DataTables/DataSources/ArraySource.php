@@ -3,8 +3,8 @@
  * ArraySource.php
  *
  * @copyright	More in license.md
- * @license		http://www.ipublikuj.eu
- * @author		Adam Kadlec http://www.ipublikuj.eu
+ * @license		https://www.ipublikuj.eu
+ * @author		Adam Kadlec <adam.kadlec@ipublikuj.eu>
  * @package		iPublikuj:DataTables!
  * @subpackage	DataSources
  * @since		5.0
@@ -15,7 +15,6 @@
 namespace IPub\DataTables\DataSources;
 
 use Nette;
-use Nette\Utils;
 
 use IPub\DataTables;
 use IPub\DataTables\Exceptions;
@@ -30,8 +29,13 @@ use IPub\DataTables\Filters;
  * @property-read array $data
  * @property-read int $count
  */
-class ArraySource extends Nette\Object implements IDataSource
+class ArraySource implements IDataSource
 {
+	/**
+	 * Implement nette smart magic
+	 */
+	use Nette\SmartObject;
+
 	/** @var array */
 	protected $data;
 

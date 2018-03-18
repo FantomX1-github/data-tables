@@ -3,8 +3,8 @@
  * IStateSaver.php
  *
  * @copyright      More in license.md
- * @license        http://www.ipublikuj.eu
- * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @license        https://www.ipublikuj.eu
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
  * @package        iPublikuj:DataTables!
  * @subpackage     StateSavers
  * @since          1.0.0
@@ -34,7 +34,7 @@ interface IStateSaver
 	 *
 	 * @return void
 	 */
-	function saveState(string $name, $data);
+	function saveState(string $name, $data) : void;
 
 	/**
 	 * Load JSON data from database

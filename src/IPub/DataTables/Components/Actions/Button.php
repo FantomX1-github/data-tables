@@ -3,8 +3,8 @@
  * Button.php
  *
  * @copyright      More in license.md
- * @license        http://www.ipublikuj.eu
- * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @license        https://www.ipublikuj.eu
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
  * @package        iPublikuj:DataTables!
  * @subpackage     Components
  * @since          5.0
@@ -22,7 +22,6 @@ use Nette\Forms;
 use Nette\Utils;
 use Nette\Localization;
 
-use IPub;
 use IPub\DataTables;
 use IPub\DataTables\Components;
 use IPub\DataTables\Exceptions;

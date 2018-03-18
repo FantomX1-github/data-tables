@@ -3,8 +3,8 @@
  * TFilters.php
  *
  * @copyright      More in license.md
- * @license        http://www.ipublikuj.eu
- * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @license        https://www.ipublikuj.eu
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
  * @package        iPublikuj:DataTables!
  * @subpackage     Components
  * @since          1.0.0
@@ -142,7 +142,7 @@ trait TFilters
 		/** @var ComponentModel\Container $filtersContainer */
 		$filtersContainer = $this->getComponent(Filters\Filter::ID, FALSE);
 
-		return count($filtersContainer->getComponents()) > 0;
+		return $filtersContainer !== NULL && count($filtersContainer->getComponents()) > 0;
 	}
 
 	/**

@@ -3,8 +3,8 @@
  * Settings.php
  *
  * @copyright      More in license.md
- * @license        http://www.ipublikuj.eu
- * @author         Adam Kadlec http://www.ipublikuj.eu
+ * @license        https://www.ipublikuj.eu
+ * @author         Adam Kadlec <adam.kadlec@ipublikuj.eu>
  * @package        iPublikuj:DataTables!
  * @subpackage     Components
  * @since          1.0.0
@@ -19,7 +19,6 @@ namespace IPub\DataTables\Components;
 use Nette\Application\UI;
 use Nette\Utils;
 
-use IPub;
 use IPub\DataTables;
 use IPub\DataTables\Exceptions;
 
@@ -204,15 +203,6 @@ abstract class Settings extends UI\Control
 	 * @var bool
 	 */
 	private $orderClasses = TRUE;
-
-	/**
-	 * Ordering to always be applied to the table
-	 *
-	 * @see http://datatables.net/reference/option/orderFixed
-	 *
-	 * @var array
-	 */
-	private $orderFixed = NULL;
 
 	/**
 	 * Multiple column ordering ability control
