@@ -66,7 +66,7 @@ class Model implements IModel
 			$dataSource = new Doctrine($source, $primaryKey);
 
 		} elseif (is_array($source)) {
-			$dataSource = new ArraySource($source);
+			$dataSource = new ArraySource($source, $primaryKey);
 
 		} elseif ($source instanceof IDataSource) {
 			$dataSource = $source;

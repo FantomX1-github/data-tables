@@ -189,10 +189,7 @@ class Doctrine implements IDataSource
 	}
 
 	/**
-	 * @param mixed $row
-	 * @param string $column
-	 *
-	 * @return mixed|NULL
+	 * {@inheritdoc}
 	 */
 	public function getColumnValue($row, string $column)
 	{
@@ -212,11 +209,7 @@ class Doctrine implements IDataSource
 	}
 
 	/**
-	 * @param mixed $row
-	 *
-	 * @return string
-	 *
-	 * @throws Exceptions\InvalidStateException
+	 * {@inheritdoc}
 	 */
 	public function getRowIdentifier($row)
 	{
